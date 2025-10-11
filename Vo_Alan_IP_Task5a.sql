@@ -1,0 +1,1 @@
+--SQL statements that implement all queries 1-14 with error checking
