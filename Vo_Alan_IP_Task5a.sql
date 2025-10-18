@@ -1,6 +1,5 @@
 --SQL statements that implement all queries 1-14 with error checking
 
-
 --populate some data in National Park (assume that national parks already exist) for query 1
 INSERT INTO National_park (park_name, street, city, us_state, postal_code, establishment_date, visitor_capacity)
 VALUES 
@@ -11,49 +10,48 @@ VALUES
 
 
 -- ----------------------------------------------------------------------------------------------------------------------------------------------------
--- --Query 1: Insert a new visitor into the database and associate them with one or more park programs (10/day).
--- --use Transact SQL stored procedure     
--- DROP PROCEDURE IF EXISTS query_1;
+--Query 1: Insert a new visitor into the database and associate them with one or more park programs (10/day).
+-- using PreparedStatement in java, the ? are placeholders that are replaced with user input during java execution
+-- Insert into Person table first
+INSERT INTO Person (
+    person_ID, first_name, last_name, middle_initial, date_of_birth, gender,
+    street, city, us_state, postal_code, subscription_status
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
--- GO
--- CREATE PROCEDURE query_1
--- --input parameters entered from the user 
---     @person_ID INT, 
---     @first_name VARCHAR(64), 
---     @last_name VARCHAR(64), 
---     @middle_initial CHAR(1), 
---     @date_of_birth DATE, 
---     @gender CHAR(1), 
---     @street VARCHAR(100),   
---     @city VARCHAR(30), 
---     @us_state CHAR(2), 
---     @postal_code VARCHAR(10), 
---     @subscribed_to_newsletter CHAR(1),
---     @park_name VARCHAR(64),
---     @program_name VARCHAR(64), 
---     @visit_date DATE,
---     @accessibility_needs VARCHAR(500)
--- AS
--- BEGIN
--- --if new person, perform all three queries 
---     IF NOT EXISTS (SELECT 1 FROM Person WHERE person_ID = @person_ID)
---         BEGIN 
---             --three queries below form a statement block, so we need to use BEGIN and END 
---             --insert into Person table first (parent class of Visitor) 
---             INSERT INTO Person VALUES (@person_ID, @first_name, @last_name, @middle_initial, @date_of_birth, @gender, @street, @city, @us_state, @postal_code, @subscribed_to_newsletter);
---             --insert into Visitor table 
---             INSERT INTO Visitor VALUES (@person_ID);
---             --associate visitor with one or more park programs 
---             INSERT INTO Enroll_in VALUES (@person_ID, @park_name, @program_name, @visit_date, @accessibility_needs);
---         END
---     ELSE
---         --otherwise, if person has more than one assocation with park program (already exist in Person and Visitor tables), only insert into Enroll_in to satisfy multiple assocations with park programs
---         INSERT INTO Enroll_in VALUES (@person_ID, @park_name, @program_name, @visit_date, @accessibility_needs);
--- END
+--then insert into visitor table
+INSERT INTO Visitor (
+    person_ID
+) VALUES (?);
 
--- -- Executing the procedure query_1
--- GO
--- EXEC query_1;
+-- assuming that national parks and programs already exist, add to Enroll_in table to associate visitors with park programs
+--in java program, will have to use for loop to account for more than one park program
+INSERT INTO Enroll_in (
+    person_ID, park_name, program_name, visit_date, accessibility_needs
+) VALUES (?, ?, ?, ?, ?);
+
+--account for visitors having park passes by inserting into Parks_pass and Holds
+INSERT INTO Park_pass (
+    pass_ID, pass_type, expiration_date
+) VALUES (?, ?, ?);
+
+INSERT INTO Holds (
+    pass_ID, person_ID
+) VALUES (?, ?);
+
+--account for multivalued attribute phone number
+INSERT INTO Person_phone (
+    person_ID, phone_number
+) VALUES (?, ?);
+
+-- account for multivalued attribuite email
+INSERT INTO Person_email (
+    person_ID, email
+) VALUES (?, ?);
+
+--person can have emergency contacts
+INSERT INTO Emergency_contact (
+    person_ID, contact_name, relationship, phone_number
+) VALUES (?, ?, ?, ?);
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --Query 2: Insert a new ranger into the database and assign them to a ranger team (2/month).
@@ -96,8 +94,16 @@ VALUES (4, '2025-12-12', 100000, 'blackpink rules', 12);
 
 
 --13. Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (1/week)
-SELECT first_name, last_name, phone_number, email_address, subscribed_to_newsletter
-FROM Person, Person_phone, Person_email
-WHERE Person.person_ID = Person_phone.person_ID AND Person.person_ID = Person_email.person_ID;
+--have three seperate select statements
+--first, display first name, middle initial, last name, ID, and newsletter subscription status from Person table  
+SELECT person_ID, first_name, last_name, middle_initial, subscribed_to_newsletter
+FROM Person
+
+--get contact information (phone numbers and email addresses)
+SELECT * 
+FROM Person_phone 
+
+SELECT * 
+FROM Person_email
 
 

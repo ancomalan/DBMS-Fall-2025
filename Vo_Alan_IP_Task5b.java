@@ -1,7 +1,9 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Scanner;
 
 public class Vo_Alan_IP_Task5b {
@@ -42,16 +44,17 @@ public class Vo_Alan_IP_Task5b {
 	final static String INSERT_EMERGENCY_CONTACT = "INSERT INTO Emergency_contact " + 
 												   "VALUES (?, ?, ?, ?);";
 	
-	//query 13: Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database
-	
-	
-	
+	//query 13: Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (following three queries)
+	final static String RETRIEVE_PEOPLE = "SELECT person_ID, first_name, last_name, middle_initial, subscribed_to_newsletter FROM Person; ";
+	final static String RETRIEVE_PHONE_NUMBERS = "SELECT * FROM Person_phone; ";
+	final static String RETRIEVE_EMAILS = "SELECT * FROM Person_email; ";
+
 	
 	// User input prompt
 	final static String PROMPT = 
 			"\nPlease select one of the options below: \n" +
 					"1) Insert a new visitor into the database and associate them with one or more park programs; \n" + 
-					"2) Display all students; \n" + 
+					"13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n" + 
 					"18) Quit";
 
 	public static void main(String[] args) throws SQLException {
@@ -314,30 +317,60 @@ public class Vo_Alan_IP_Task5b {
 				break;
 			case "13":
 				//Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database
-				
-				//				System.out.println("Connecting to the database...");
-				//				// Get the database connection, create statement and execute it right away, as no user input need be collected
-				//				try (final Connection connection = DriverManager.getConnection(URL)) {
-				//					System.out.println("Dispatching the query...");
-				//					try (
-				//							final Statement statement = connection.createStatement();
-				//							final ResultSet resultSet = statement.executeQuery(QUERY_TEMPLATE_3)) {
-				//
-				//						System.out.println("Contents of the Student table:");
-				//						System.out.println("ID | first name | last name | GPA | major | classification ");
-				//
-				//						// Unpack the tuples returned by the database and print them out to the user
-				//						while (resultSet.next()) {
-				//							System.out.println(String.format("%s | %s | %s | %s | %s | %s ",
-				//									resultSet.getString(1),
-				//									resultSet.getString(2),
-				//									resultSet.getString(3),
-				//									resultSet.getString(4),
-				//									resultSet.getString(5),
-				//									resultSet.getString(6)));
-				//						}
-				//					}
-				//				}
+				System.out.println("Connecting to the database...");
+				// Get the database connection, create statement and execute it right away, as no user input need be collected
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					System.out.println("Dispatching the query...");
+					//get attributes from person table 
+					try (
+							final Statement statement = connection.createStatement();
+							final ResultSet resultSet = statement.executeQuery(RETRIEVE_PEOPLE)) {
+
+						System.out.println("Contents of the Person table:");
+						System.out.println("person_ID | first_name | last_name | middle_initial | subscribed_to_newsletter ");
+
+						// Unpack the tuples returned by the database and print them out to the user
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s | %s | %s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2),
+									resultSet.getString(3),
+									resultSet.getString(4),
+									resultSet.getString(5)));
+						}
+						System.out.println();
+					}
+					//get entire Person_phone table
+					try (
+							final Statement statement = connection.createStatement();
+							final ResultSet resultSet = statement.executeQuery(RETRIEVE_PHONE_NUMBERS)) {
+
+						System.out.println("Contents of the Person_phone table:");
+						System.out.println("person_ID | phone_number ");
+
+						// Unpack the tuples returned by the database and print them out to the user
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2)));
+						}
+						System.out.println();
+					}
+					try (
+							final Statement statement = connection.createStatement();
+							final ResultSet resultSet = statement.executeQuery(RETRIEVE_EMAILS)) {
+
+						System.out.println("Contents of the Person_email table:");
+						System.out.println("person_ID | email_address ");
+
+						// Unpack the tuples returned by the database and print them out to the user
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2)));
+						}
+					}
+				}
 				break;
 			case "14": 
 				break;
