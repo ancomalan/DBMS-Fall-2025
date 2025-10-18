@@ -32,7 +32,7 @@ CREATE TABLE Person(
     person_ID INT PRIMARY KEY, 
     first_name VARCHAR(64) NOT NULL, 
     last_name VARCHAR(64) NOT NULL, 
-    middle_initial CHAR(1),
+    middle_initial CHAR(1), --optional middle initial
     date_of_birth DATE, --format: YYYY-MM-DD
     gender CHAR (1) NOT NULL,
     street VARCHAR(100) NOT NULL,
@@ -50,8 +50,8 @@ CREATE TABLE Emergency_contact(
     relationship VARCHAR (20) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
 
-    --multi-attribute primary key (person_ID and contact_name)
-    CONSTRAINT PK_emergency_contact PRIMARY KEY (person_ID, contact_name),
+    --multi-attribute primary key (include all attributes of weak entity as discriminators to be safe)
+    CONSTRAINT PK_emergency_contact PRIMARY KEY (person_ID, contact_name, relationship, phone_number),
     --enforce foreign key contraint to person_ID in Person relation
     CONSTRAINT FK_emergency_contact FOREIGN KEY (person_ID) REFERENCES Person
 );
@@ -106,14 +106,14 @@ CREATE TABLE Researcher(
     person_ID INT PRIMARY KEY, 
     research_field VARCHAR(40) NOT NULL, 
     hire_date DATE,
-    salary INT NOT NULL, 
+    salary NUMERIC(8,2), --Fixed point number, with user-specified precision of 8 digits, with 2 digits to the right of decimal point
     CONSTRAINT FK_researcher FOREIGN KEY (person_ID) REFERENCES Person --foreign key of Person
 );
 
 --table for donor (inherits from Person)
 CREATE TABLE Donor(
     person_ID INT PRIMARY KEY, 
-    anonymity_preference CHAR(1), --'Y' or 'N'
+    anonymity_preference CHAR(1) NOT NULL, --'Y' or 'N'
     CONSTRAINT FK_donor FOREIGN KEY (person_ID) REFERENCES Person --foreign key of Person
 );
 
@@ -173,13 +173,13 @@ CREATE TABLE Program(
 
 --donations must be either check or credit card (total disjoint) as represented by two tables below 
 CREATE TABLE Check_donation(
-    person_ID INT NOT NULL, --depends on donor id since weak entity set
+    person_ID INT NOT NULL, --depends on donor id since donation is a weak entity set
     donation_date DATE,
-    amount INT NOT NULL, 
+    amount NUMERIC(8,2) NOT NULL, --Fixed point number, with user-specified precision of 8 digits, with 2 digits to the right of decimal point
     campaign_name VARCHAR(64), 
     check_number VARCHAR(20), 
 
-    --primary key consists of person_ID, donation_Date, amount, campaign_name to be safe (assuming that donor can only donate once per day)
+    --primary key consists of person_ID, donation_Date, amount, campaign_name to be safe 
     CONSTRAINT PK_check_donation PRIMARY KEY (person_ID, donation_date, amount, campaign_name),
     --foreign key references person_ID in donor table
     CONSTRAINT FK_check_donation FOREIGN KEY (person_ID) REFERENCES Donor --person has to exist in Donor table in order to make donation
@@ -189,7 +189,7 @@ CREATE TABLE Check_donation(
 CREATE TABLE Credit_card_donation(
     person_ID INT NOT NULL, --donor id
     donation_date DATE, 
-    amount INT NOT NULL, 
+    amount NUMERIC(8,2) NOT NULL, 
     campaign_name VARCHAR(64),
     card_type VARCHAR(64) NOT NULL, 
     last_four_digits CHAR(4) NOT NULL, 
@@ -244,7 +244,7 @@ CREATE TABLE Reports_to(
     person_ID INT NOT NULL, --researcher id
     activities_summary VARCHAR(1024) NOT NULL, 
 
-    --multi-attribute primary key 
+    --multi-attribute primary key to allow teams to report on seperate dates 
     CONSTRAINT PK_reports_to PRIMARY KEY (team_ID, report_date),
     --foreign key constraints
     CONSTRAINT FK_reports_to_team FOREIGN KEY (team_ID) REFERENCES Ranger_team,

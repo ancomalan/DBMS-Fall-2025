@@ -4,11 +4,9 @@
 --populate some data in National Park (assume that national parks already exist) for query 1
 INSERT INTO National_park (park_name, street, city, us_state, postal_code, establishment_date, visitor_capacity)
 VALUES 
-('Yellowstone National Park', '1 Grand Loop Rd', 'Yellowstone', 'WY', '82190', '1872-03-01', 25000),
-('Yosemite National Park', '9011 Village Dr', 'Yosemite Valley', 'CA', '95389', '1890-10-01', 20000),
-('Grand Canyon National Park', '20 South Entrance Rd', 'Grand Canyon', 'AZ', '86023', '1919-02-26', 30000),
-('Zion National Park', '1 Zion Park Blvd', 'Springdale', 'UT', '84767', '1919-11-19', 15000),
-('Rocky Mountain National Park', '1000 US Hwy 36', 'Estes Park', 'CO', '80517', '1915-01-26', 18000);
+('Yellowstone', '1 Grand Loop Rd', 'Yellowstone', 'WY', '82190', '1872-03-01', 25000),
+('Yosemite', '9011 Village Dr', 'Yosemite Valley', 'CA', '95389', '1890-10-01', 20000),
+
 
 
 

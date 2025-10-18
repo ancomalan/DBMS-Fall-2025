@@ -1,10 +1,8 @@
 import java.sql.Connection;
-import java.sql.Statement;
-import java.util.Scanner;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Scanner;
 
 public class Vo_Alan_IP_Task5b {
 
@@ -22,29 +20,34 @@ public class Vo_Alan_IP_Task5b {
 	//template for inserting into Person table 
 	final static String INSERT_PERSON = "INSERT INTO Person " + 
 										"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-
 	//template for inserting into Visitor table 
 	final static String INSERT_VISITOR = "INSERT INTO Visitor " + 
 										 "VALUES (?);";
-
 	//template for inserting into Enroll_in table (associating visitors with park programs)
 	final static String INSERT_ENROLL_IN = "INSERT INTO Enroll_in "+ 
 										   "VALUES (?, ?, ?, ?, ?);";
-
+	//template for inserting into Park_pass table 
+	final static String INSERT_PARK_PASS = "INSERT INTO Park_pass " + 
+										   "VALUES (?, ?, ?);";
+	//template for inserting into Holds table (visitors can hold many park passes)
+	final static String INSERT_HOLDS = "INSERT INTO Holds " + 
+									   "VALUES (?, ?);";
 	//template for inserting into Person_phone table (multi-valued attribute of Person table technically)
 	final static String INSERT_PERSON_PHONE = "INSERT INTO Person_phone " + 
 											  "VALUES (?, ?); ";
-
-
 	//template for inserting into Person_email table (multi-valued attribute of Person table technically)
 	final static String INSERT_PERSON_EMAIL = "INSERT INTO Person_email " + 
 											  "VALUES (?, ?);";
-	
 	//template for inserting into Emergency_contact table 
 	final static String INSERT_EMERGENCY_CONTACT = "INSERT INTO Emergency_contact " + 
 												   "VALUES (?, ?, ?, ?);";
-
-	// User input prompt//
+	
+	//query 13: Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database
+	
+	
+	
+	
+	// User input prompt
 	final static String PROMPT = 
 			"\nPlease select one of the options below: \n" +
 					"1) Insert a new visitor into the database and associate them with one or more park programs; \n" + 
@@ -63,7 +66,7 @@ public class Vo_Alan_IP_Task5b {
 
 			switch (option) { // Switch between different options
 			case "1": // Insert a new visitor and associate them with one or more park programs
-				// Collect visitor and park program data from user 
+				// Collect input data from user
 				System.out.println("Please enter visitor's ID: ");
 				final int visitor_ID = sc.nextInt(); // Read in the user input for person_ID
 
@@ -92,7 +95,7 @@ public class Vo_Alan_IP_Task5b {
 				System.out.println("Please enter visitor's city: ");
 				final String visitor_city = sc.nextLine();
 
-				System.out.println("Please enter visitor's state abbreviation: ");
+				System.out.println("Please enter visitor's state abbreviation (e.g., AZ): ");
 				final String visitor_state = sc.nextLine();
 
 				System.out.println("Please enter visitor's postal code: ");
@@ -135,19 +138,18 @@ public class Vo_Alan_IP_Task5b {
 						final int rows_inserted = insertVisitor.executeUpdate();
 						System.out.println(String.format("Done. %d rows inserted into Visitor table.", rows_inserted));
 					}
-					//associate visitor's with 1 or more park programs 
+					//associate visitor with 1 or more park programs 
 					try (
 							final PreparedStatement insertEnrollIn = connection.prepareStatement(INSERT_ENROLL_IN)) {
-						//associate them with one or more programs (get this number to loop)
-						System.out.println("How many park programs would you like to associate with this visitor? "); 
+						//associate them with one or more programs 
+						System.out.println("How many park programs would you like to associate with this visitor (0 for none)? "); 
 						final int number_programs = sc.nextInt();
 						sc.nextLine(); //consume newline from preceding nextInt
 
 						//use for loop to associate visitor with multiple park programs (by inserting them multiple times into the Enroll_in table)
 						for (int i = 0; i < number_programs; i++) {
-
 							//get park_name, program_name, visit_date, and accessibility_needs (program information)
-							//variables are not final because they can be reassigned after every iteration
+							//variables are not final because they must be reassigned after every iteration
 							//Program and National Park data have to already exist in the database because of foreign key constraints (we can populate Programs with query 7)
 							System.out.println("Please enter National Park name: ");
 							String park_name = sc.nextLine();
@@ -173,10 +175,50 @@ public class Vo_Alan_IP_Task5b {
 							System.out.println(String.format("Done. %d rows inserted into the Enroll_in table.", rows_inserted));
 						}
 					}
+					//account for visitor holding park passes (query 15)
+					try (
+							//try with resources can have more than one resource (we need to insert into Park_pass and Holds tables to account for how visitors can hold many park passes)
+							final PreparedStatement insertParkPass = connection.prepareStatement(INSERT_PARK_PASS);
+							final PreparedStatement insertHolds = connection.prepareStatement(INSERT_HOLDS)
+							) {
+						//associate visitor with one or more park passes
+						System.out.println("How many park passes would you like to associate with this visitor (0 for none)? "); 
+						final int number_passes = sc.nextInt();
+						sc.nextLine(); //consume newline from preceding nextInt
+
+						//use for loop to associate visitor with multiple park passes, if any
+						for (int i = 0; i < number_passes; i++) {
+							//variables are not final because they have to be reassigned after every iteration
+							System.out.println("Please enter pass ID: ");
+							int pass_ID = sc.nextInt();
+							sc.nextLine();//consume newline from preceding nextInt
+							
+							System.out.println("Please enter pass type (e.g., annual, day): ");
+							String pass_type = sc.nextLine();
+
+							System.out.println("Please enter expiration date for pass (YYYY-MM-DD): ");
+							String pass_expiration_date = sc.nextLine();
+
+							//populate query template 
+							insertParkPass.setInt(1, pass_ID);
+							insertParkPass.setString(2, pass_type);
+							insertParkPass.setString(3, pass_expiration_date);
+						
+							// Actually execute the populated query
+							final int rows_inserted = insertParkPass.executeUpdate(); //insert pass into Park_pass table first since Holds table references it 
+							System.out.println(String.format("Done. %d rows inserted into the Park_pass table.", rows_inserted));
+							
+							//insert into Holds table to account for the relationship
+							insertHolds.setInt(1, pass_ID);
+							insertHolds.setInt(2, visitor_ID);
+							final int rows_inserted2 = insertHolds.executeUpdate();
+							System.out.println(String.format("Done. %d rows inserted into the Holds table.", rows_inserted2));
+						}
+					}
 					//account for multi-valued attributes of phone numbers
 					try (
 							final PreparedStatement insertPhone = connection.prepareStatement(INSERT_PERSON_PHONE)) {
-						System.out.println("How many phone numbers would you like to add for visitor?");
+						System.out.println("How many phone numbers would you like to add for visitor (0 for none)?");
 						final int number_phones = sc.nextInt();
 						sc.nextLine();//consume new line character from nextInt
 
@@ -196,7 +238,7 @@ public class Vo_Alan_IP_Task5b {
 					//account for multi-valued attribute of emails
 					try (
 							final PreparedStatement insertEmail = connection.prepareStatement(INSERT_PERSON_EMAIL)) {
-						System.out.println("How many email addresses would you like to add for visitor?");
+						System.out.println("How many email addresses would you like to add for visitor (0 for none)?");
 						final int number_emails = sc.nextInt();
 						sc.nextLine();//consume new line character from nextInt
 
@@ -213,10 +255,10 @@ public class Vo_Alan_IP_Task5b {
 							System.out.println(String.format("Done. %d rows inserted into Person_email table.", rows_inserted));
 						}
 					}
-					//lastly account for emergency contacts that each visitor might have
+					//lastly, account for emergency contacts that each visitor might have (query 8)
 					try (
 							final PreparedStatement insertEmergencyContact = connection.prepareStatement(INSERT_EMERGENCY_CONTACT)) {
-						System.out.println("How many emergency contacts would you like to add for this visitor?");
+						System.out.println("How many emergency contacts would you like to add for this visitor (0 for none)?");
 						final int number_contacts = sc.nextInt(); //use in for loop 
 						sc.nextLine();//consume new line character from nextInt
 
@@ -227,7 +269,7 @@ public class Vo_Alan_IP_Task5b {
 							String contact_name = sc.nextLine(); //variable is not final since it needs to be reassigned after every iteration
 							System.out.println("Please enter relationship to the visitor: ");
 							String relationship = sc.nextLine();
-							System.out.println("Pleasea enter phone number for emergency contact: " + contact_name);
+							System.out.println("Please enter phone number for emergency contact: ");
 							String emergency_phone_number = sc.nextLine();
 
 							//populate query template
@@ -238,13 +280,41 @@ public class Vo_Alan_IP_Task5b {
 
 							// Actually execute the populated query
 							final int rows_inserted = insertEmergencyContact.executeUpdate();
-							System.out.println(String.format("Done. %d rows inserted into Person_email table.", rows_inserted));
+							System.out.println(String.format("Done. %d rows inserted into Emergency_contact table.", rows_inserted));
 						}
 					}
-
 				}
 				break;
 			case "2":
+				break;
+			case "3": 
+				break;
+			case "4":
+				//insert a new donor 
+				//ask if they prefer to be anonymous 
+				//insert 2 anonymous and 1 not 
+				break;
+			case "5": 
+				break;
+			case "6": 
+				break;
+			case "7": 
+				break;
+			case "8": 
+				break;
+			case "9": 
+				break;
+			case "10": 
+				break;
+			case "11": 
+				//donors are NOT assumed to all be anonymous 
+				
+				break;
+			case "12": 
+				break;
+			case "13":
+				//Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database
+				
 				//				System.out.println("Connecting to the database...");
 				//				// Get the database connection, create statement and execute it right away, as no user input need be collected
 				//				try (final Connection connection = DriverManager.getConnection(URL)) {
@@ -268,8 +338,12 @@ public class Vo_Alan_IP_Task5b {
 				//						}
 				//					}
 				//				}
-
 				break;
+			case "14": 
+				break;
+			case "15": 
+				break;
+		
 			case "18": // Do nothing, the while loop will terminate upon the next iteration
 				System.out.println("Exiting! Good-bye!");
 				break;
