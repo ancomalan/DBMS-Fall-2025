@@ -55,23 +55,120 @@ INSERT INTO Emergency_contact (
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --Query 2: Insert a new ranger into the database and assign them to a ranger team (2/month).
-INSERT INTO Person 
-(person_ID, first_name, last_name, middle_initial, date_of_birth, gender, street, city, us_state, postal_code, subscribed_to_newsletter)
-VALUES 
-(2,'Jason', 'Vo', 'T', '2006-06-05', 'M', '6508 Apple Drive', 
-    'Spring', 'Texas', '12333', 'N');
+--stored procedure for inserting ranger into Person table, Ranger table, and Assigned_to table 
+DROP PROCEDURE IF EXISTS query_2;
+GO
+CREATE PROCEDURE query_2
+    --input parameters for Person and Ranger tables
+    @person_ID INT,
+    @first_name VARCHAR(64),
+    @last_name VARCHAR(64),
+    @middle_initial CHAR(1),
+    @date_of_birth DATE,
+    @gender CHAR(1),
+    @street VARCHAR(100),
+    @city VARCHAR(30),
+    @us_state CHAR(2),
+    @postal_code VARCHAR(10),
+    @subscribed_to_newsletter CHAR(1),
+    --input parameters for Assigned_to table
+    @team_ID INT,
+    @ranger_start_date DATE,
+    @ranger_status VARCHAR(10),
+    @ranger_role VARCHAR(10)
+AS
+BEGIN
+    --insert into Person table first (parent class of Ranger) 
+    INSERT INTO Person
+    VALUES
+        (@person_ID, @first_name, @last_name, @middle_initial, @date_of_birth, @gender, @street, @city, @us_state, @postal_code, @subscribed_to_newsletter);
+    --insert into Ranger table 
+    INSERT INTO Ranger
+    VALUES
+        (@person_ID);
+    --insert into Assigned_to table to assign ranger to ranger team 
+    INSERT INTO Assigned_to
+    VALUES
+        (@person_ID, @team_ID, @ranger_start_date, @ranger_status, @ranger_role);
+END
+GO
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for rangers having certifications 
+DROP PROCEDURE IF EXISTS add_ranger_certification;
+GO
+CREATE PROCEDURE add_ranger_certification
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @certification VARCHAR(20)
+AS
+BEGIN
+    --insert Ranger_certification table 
+    INSERT INTO Ranger_certification
+    VALUES
+        (@person_ID, @certification);
+END
+GO
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple phone numbers)
+DROP PROCEDURE IF EXISTS add_phone;
+GO
+CREATE PROCEDURE add_phone
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @phone_number VARCHAR(20)
+AS
+BEGIN
+    --insert into Person_phone table
+    INSERT INTO Person_phone
+    VALUES
+        (@person_ID, @phone_number);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple emails)
+DROP PROCEDURE IF EXISTS add_email;
+GO
+CREATE PROCEDURE add_email
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @email_address VARCHAR(50)
+AS
+BEGIN
+    --insert into Person_email table
+    INSERT INTO Person_email
+    VALUES
+        (@person_ID, @email_address);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having emergency contacts)
+DROP PROCEDURE IF EXISTS add_emergency_contact;
+GO
+CREATE PROCEDURE add_emergency_contact
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @contact_name VARCHAR (50), 
+    @relationship VARCHAR (20), 
+    @phone_number VARCHAR (20)
+AS
+BEGIN
+    --insert into Emergency_contact table
+    INSERT INTO Emergency_contact 
+    VALUES
+        (@person_ID, @contact_name, @relationship, @phone_number);
+END
+GO
 
-INSERT INTO Ranger
-(person_ID)
-VALUES 
-(2);
 
-INSERT INTO Assigned_to
-VALUES 
-(2, 21, '2025/11/10', 'active', 'member' );
 
 ------------------------------------------------------------------------------------------------------------
 --Query 3. Insert a new ranger team into the database and set its leader(1/month).
+--insert new ranger team into Ranger_team table
+
+--set leader to an existing ranger (that is not assigned to a team yet)
+--if ranger assigned to different team,  update team_ID in Assigned_to to point to new ranger team 
+
+--then create 
 INSERT INTO Ranger_team
 VALUES 
 (9, 'Preservation of wildlife', '2023-10-10');
@@ -82,12 +179,27 @@ VALUES
 
 -----------------------------------------------------------------------------------------------
 --Query 4. Insert a new donation from a donor (5/day). 
+--assume that the donor is already existing
 INSERT INTO Check_donation 
 VALUES (4, '2025-12-12', 100000, 'blackpink rules', 12);
 
 
+
+
+
+
+
+
 --5. Insert a new researcher into the database and associate them with one or more ranger teams (1/year).
---first, insert into the person table 
+
+
+
+
+
+
+
+
+
 
 
 
