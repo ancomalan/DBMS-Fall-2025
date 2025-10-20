@@ -228,12 +228,21 @@ CREATE TABLE Assigned_to(
     team_ID INT NOT NULL, 
     ranger_start_date DATE, 
     ranger_status VARCHAR(10), --active or inactive
-    ranger_role VARCHAR (10), --leader or member
     --years of service is a derived attribute based on start_date
 
     --foreign key constraints 
     CONSTRAINT FK_assigned_to_person FOREIGN KEY (person_ID) REFERENCES Ranger,
     CONSTRAINT FK_assigned_to_team FOREIGN KEY (team_ID) REFERENCES Ranger_team
+);
+
+--create a table representing how one of the rangers that is assigned to a ranger team will be leading the team.
+CREATE TABLE Leader(
+    team_ID INT PRIMARY KEY, 
+    person_ID INT,
+
+    --person must be assigned to a team first, before they can be leader 
+    CONSTRAINT FK_Leader_person FOREIGN KEY (person_ID) REFERENCES Assigned_to
+    CONSTRAINT FK_Leader_team FOREIGN KEY (team_ID) REFERENCES Ranger_team
 );
 
 

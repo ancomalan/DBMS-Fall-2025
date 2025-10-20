@@ -1,57 +1,137 @@
 --SQL statements that implement all queries 1-14 with error checking
-
 --populate some data in National Park (assume that national parks already exist) for query 1
 INSERT INTO National_park (park_name, street, city, us_state, postal_code, establishment_date, visitor_capacity)
 VALUES 
 ('Yellowstone', '1 Grand Loop Rd', 'Yellowstone', 'WY', '82190', '1872-03-01', 25000),
 ('Yosemite', '9011 Village Dr', 'Yosemite Valley', 'CA', '95389', '1890-10-01', 20000),
+-- Recreational programs
+INSERT INTO Program VALUES 
+('Yellowstone', 'Wildlife Hike', 'Recreational', '2025-06-15', 3);
 
 
-
-
--- ----------------------------------------------------------------------------------------------------------------------------------------------------
 --Query 1: Insert a new visitor into the database and associate them with one or more park programs (10/day).
--- using PreparedStatement in java, the ? are placeholders that are replaced with user input during java execution
--- Insert into Person table first
-INSERT INTO Person (
-    person_ID, first_name, last_name, middle_initial, date_of_birth, gender,
-    street, city, us_state, postal_code, subscription_status
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+--stored procedure for inserting ranger into Person table and Visitor tables
+DROP PROCEDURE IF EXISTS insert_visitor;
+GO
+CREATE PROCEDURE insert_visitor
+    --input parameters for Person and Ranger tables
+    @person_ID INT,
+    @first_name VARCHAR(64),
+    @last_name VARCHAR(64),
+    @middle_initial CHAR(1),
+    @date_of_birth DATE,
+    @gender CHAR(1),
+    @street VARCHAR(100),
+    @city VARCHAR(30),
+    @us_state CHAR(2),
+    @postal_code VARCHAR(10),
+    @subscribed_to_newsletter CHAR(1)
+AS
+BEGIN
+    --insert into Person table first (parent class of Visitor) 
+    INSERT INTO Person
+    VALUES
+        (@person_ID, @first_name, @last_name, @middle_initial, @date_of_birth, @gender, @street, @city, @us_state, @postal_code, @subscribed_to_newsletter);
+    --insert into Visitor table 
+    INSERT INTO Visitor
+    VALUES
+        (@person_ID);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for associating Visitors with park programs
+DROP PROCEDURE IF EXISTS enroll_visitors;
+GO
+CREATE PROCEDURE enroll_visitors
+    --input parameters for Enroll_in table
+    @person_ID INT, 
+    @park_name VARCHAR(64), 
+    @program_name VARCHAR(64), 
+    @visit_date DATE, 
+    @accessibility_needs VARCHAR(500)
+AS
+BEGIN
+    --insert into Enroll_in table
+    INSERT INTO Enroll_in
+    VALUES
+        (@person_ID, @park_name, @program_name, @visit_date, @accessibility_needs);
+END
+GO
 
---then insert into visitor table
-INSERT INTO Visitor (
-    person_ID
-) VALUES (?);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for associating Visitors with park passes (adding to Park_pass and Holds tables)
+DROP PROCEDURE IF EXISTS visitor_passes;
+GO
+CREATE PROCEDURE visitor_passes
+    --input parameters for Park_pass table
+   @pass_ID INT, 
+   @pass_type VARCHAR(20), 
+   @expiration_date DATE,
+   --input parameter for Holds table
+   @person_ID INT
+AS
+BEGIN
+    --insert into Park_pass table first (add new park pass to database)
+    INSERT INTO Park_pass
+    VALUES
+        (@pass_ID, @pass_type, @expiration_date);
+    --insert into Holds table (associate them with visitor)
+    INSERT INTO Holds
+    VALUES 
+        (@pass_ID, @person_ID)
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple phone numbers)
+DROP PROCEDURE IF EXISTS add_phone;
+GO
+CREATE PROCEDURE add_phone
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @phone_number VARCHAR(20)
+AS
+BEGIN
+    --insert into Person_phone table
+    INSERT INTO Person_phone
+    VALUES
+        (@person_ID, @phone_number);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple emails)
+DROP PROCEDURE IF EXISTS add_email;
+GO
+CREATE PROCEDURE add_email
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @email_address VARCHAR(50)
+AS
+BEGIN
+    --insert into Person_email table
+    INSERT INTO Person_email
+    VALUES
+        (@person_ID, @email_address);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having emergency contacts)
+DROP PROCEDURE IF EXISTS add_emergency_contact;
+GO
+CREATE PROCEDURE add_emergency_contact
+    --input parameters entered from the user in java
+    @person_ID INT, 
+    @contact_name VARCHAR (50), 
+    @relationship VARCHAR (20), 
+    @phone_number VARCHAR (20)
+AS
+BEGIN
+    --insert into Emergency_contact table
+    INSERT INTO Emergency_contact 
+    VALUES
+        (@person_ID, @contact_name, @relationship, @phone_number);
+END
+GO
 
--- assuming that national parks and programs already exist, add to Enroll_in table to associate visitors with park programs
---in java program, will have to use for loop to account for more than one park program
-INSERT INTO Enroll_in (
-    person_ID, park_name, program_name, visit_date, accessibility_needs
-) VALUES (?, ?, ?, ?, ?);
-
---account for visitors having park passes by inserting into Parks_pass and Holds
-INSERT INTO Park_pass (
-    pass_ID, pass_type, expiration_date
-) VALUES (?, ?, ?);
-
-INSERT INTO Holds (
-    pass_ID, person_ID
-) VALUES (?, ?);
-
---account for multivalued attribute phone number
-INSERT INTO Person_phone (
-    person_ID, phone_number
-) VALUES (?, ?);
-
--- account for multivalued attribuite email
-INSERT INTO Person_email (
-    person_ID, email
-) VALUES (?, ?);
-
---person can have emergency contacts
-INSERT INTO Emergency_contact (
-    person_ID, contact_name, relationship, phone_number
-) VALUES (?, ?, ?, ?);
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --Query 2: Insert a new ranger into the database and assign them to a ranger team (2/month).
@@ -108,60 +188,11 @@ BEGIN
         (@person_ID, @certification);
 END
 GO
+
+
+--use stored procedures for phone numbers, emails, and emergency contacts from query 1 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple phone numbers)
-DROP PROCEDURE IF EXISTS add_phone;
-GO
-CREATE PROCEDURE add_phone
-    --input parameters entered from the user in java
-    @person_ID INT, 
-    @phone_number VARCHAR(20)
-AS
-BEGIN
-    --insert into Person_phone table
-    INSERT INTO Person_phone
-    VALUES
-        (@person_ID, @phone_number);
-END
-GO
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple emails)
-DROP PROCEDURE IF EXISTS add_email;
-GO
-CREATE PROCEDURE add_email
-    --input parameters entered from the user in java
-    @person_ID INT, 
-    @email_address VARCHAR(50)
-AS
-BEGIN
-    --insert into Person_email table
-    INSERT INTO Person_email
-    VALUES
-        (@person_ID, @email_address);
-END
-GO
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having emergency contacts)
-DROP PROCEDURE IF EXISTS add_emergency_contact;
-GO
-CREATE PROCEDURE add_emergency_contact
-    --input parameters entered from the user in java
-    @person_ID INT, 
-    @contact_name VARCHAR (50), 
-    @relationship VARCHAR (20), 
-    @phone_number VARCHAR (20)
-AS
-BEGIN
-    --insert into Emergency_contact table
-    INSERT INTO Emergency_contact 
-    VALUES
-        (@person_ID, @contact_name, @relationship, @phone_number);
-END
-GO
 
-
-
-------------------------------------------------------------------------------------------------------------
 --Query 3. Insert a new ranger team into the database and set its leader(1/month).
 --insert new ranger team into Ranger_team table
 
@@ -179,11 +210,77 @@ VALUES
 
 -----------------------------------------------------------------------------------------------
 --Query 4. Insert a new donation from a donor (5/day). 
---assume that the donor is already existing
-INSERT INTO Check_donation 
-VALUES (4, '2025-12-12', 100000, 'blackpink rules', 12);
-
-
+--would also use stored procedures aboe for adding emails, phone numbers, and emergency contacts 
+--stored procedure for inserting donor into Person and Donor tables
+DROP PROCEDURE IF EXISTS insert_donor;
+GO
+CREATE PROCEDURE insert_donor
+    --input parameters for Person tables
+    @person_ID INT,
+    @first_name VARCHAR(64),
+    @last_name VARCHAR(64),
+    @middle_initial CHAR(1),
+    @date_of_birth DATE,
+    @gender CHAR(1),
+    @street VARCHAR(100),
+    @city VARCHAR(30),
+    @us_state CHAR(2),
+    @postal_code VARCHAR(10),
+    @subscribed_to_newsletter CHAR(1),
+    --input parameter for Donor
+    @anonymity_preference CHAR(1)
+AS
+BEGIN
+    --insert into Person table first (parent class of Donor) 
+    INSERT INTO Person
+    VALUES
+        (@person_ID, @first_name, @last_name, @middle_initial, @date_of_birth, @gender, @street, @city, @us_state, @postal_code, @subscribed_to_newsletter);
+    --insert into Donor table 
+    INSERT INTO Donor
+    VALUES
+        (@person_ID, @anonymity_preference);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for inserting into Check_donation table
+DROP PROCEDURE IF EXISTS insert_check_donation;
+GO
+CREATE PROCEDURE insert_check_donation
+    --input parameters for Person tables
+    @person_ID INT,
+    @donation_date DATE, 
+    @amount NUMERIC(8,2),
+    @campaign_name VARCHAR(64), 
+    @check_number VARCHAR(20)
+AS
+BEGIN
+    --insert into Check_donation table
+    INSERT INTO Check_donation
+    VALUES
+        (@person_ID, @donation_date, @amount, @campaign_name, @check_number);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for inserting into Credit_card_donation table
+DROP PROCEDURE IF EXISTS insert_credit_card_donation;
+GO
+CREATE PROCEDURE insert_credit_card_donation
+    --input parameters for Person tables
+    @person_ID INT,
+    @donation_date DATE, 
+    @amount NUMERIC(8,2),
+    @campaign_name VARCHAR(64), 
+    @card_type VARCHAR(64), 
+    @last_four_digits CHAR(4), 
+    @expiration_date DATE
+AS
+BEGIN
+    --insert into Check_donation table
+    INSERT INTO Credit_card_donation
+    VALUES
+        (@person_ID, @donation_date, @amount, @campaign_name, @card_type, @last_four_digits, @expiration_date);
+END
+GO
 
 
 
