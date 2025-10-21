@@ -1,20 +1,9 @@
 --SQL statements that implement all queries 1-14 with error checking
---populate some data in National Park (assume that national parks already exist) for query 1
-INSERT INTO National_park (park_name, street, city, us_state, postal_code, establishment_date, visitor_capacity)
-VALUES 
-('Yellowstone', '1 Grand Loop Rd', 'Yellowstone', 'WY', '82190', '1872-03-01', 25000),
-('Yosemite', '9011 Village Dr', 'Yosemite Valley', 'CA', '95389', '1890-10-01', 20000),
--- Recreational programs
-INSERT INTO Program VALUES 
-('Yellowstone', 'Wildlife Hike', 'Recreational', '2025-06-15', 3);
-
-
---Query 1: Insert a new visitor into the database and associate them with one or more park programs (10/day).
---stored procedure for inserting ranger into Person table and Visitor tables
+--Query 1: Insert a new visitor into the database and associate them with one or more park programs
 DROP PROCEDURE IF EXISTS insert_visitor;
 GO
 CREATE PROCEDURE insert_visitor
-    --input parameters for Person and Ranger tables
+    --input parameters for Person and Visitor tables
     @person_ID INT,
     @first_name VARCHAR(64),
     @last_name VARCHAR(64),
@@ -154,8 +143,7 @@ CREATE PROCEDURE query_2
     --input parameters for Assigned_to table
     @team_ID INT,
     @ranger_start_date DATE,
-    @ranger_status VARCHAR(10),
-    @ranger_role VARCHAR(10)
+    @ranger_status VARCHAR(10)
 AS
 BEGIN
     --insert into Person table first (parent class of Ranger) 
@@ -169,7 +157,7 @@ BEGIN
     --insert into Assigned_to table to assign ranger to ranger team 
     INSERT INTO Assigned_to
     VALUES
-        (@person_ID, @team_ID, @ranger_start_date, @ranger_status, @ranger_role);
+        (@person_ID, @team_ID, @ranger_start_date, @ranger_status);
 END
 GO
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -189,9 +177,9 @@ BEGIN
 END
 GO
 
-
 --use stored procedures for phone numbers, emails, and emergency contacts from query 1 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 --Query 3. Insert a new ranger team into the database and set its leader(1/month).
 --insert new ranger team into Ranger_team table
@@ -200,17 +188,17 @@ GO
 --if ranger assigned to different team,  update team_ID in Assigned_to to point to new ranger team 
 
 --then create 
-INSERT INTO Ranger_team
-VALUES 
-(9, 'Preservation of wildlife', '2023-10-10');
+-- INSERT INTO Ranger_team
+-- VALUES 
+-- (9, 'Preservation of wildlife', '2023-10-10');
 
-INSERT INTO Assigned_to
-VALUES 
-(3, 9, '2023-12-12', 'active', 'leader');
+-- INSERT INTO Assigned_to
+-- VALUES 
+-- (3, 9, '2023-12-12', 'active', 'leader');
 
 -----------------------------------------------------------------------------------------------
 --Query 4. Insert a new donation from a donor (5/day). 
---would also use stored procedures aboe for adding emails, phone numbers, and emergency contacts 
+--would also use stored procedures from query 1 for adding emails, phone numbers, and emergency contacts 
 --stored procedure for inserting donor into Person and Donor tables
 DROP PROCEDURE IF EXISTS insert_donor;
 GO
@@ -284,24 +272,54 @@ GO
 
 
 
-
-
-
 --5. Insert a new researcher into the database and associate them with one or more ranger teams (1/year).
 
 
 
 
+--7. Insert a new park program into the database for a specific park (2/month).
+--stored procedure for adding national park to database if it doesn't exist yet. 
+DROP PROCEDURE IF EXISTS add_national_park;
+GO
+CREATE PROCEDURE add_national_park
+    --input parameters for National_park table
+    @park_name VARCHAR(64), 
+    @street VARCHAR(64), 
+    @city VARCHAR(30), 
+    @us_state CHAR(2), 
+    @postal_code VARCHAR(10), 
+    @establishment_date DATE, 
+    @visitor_capacity INT
+AS
+BEGIN
+    --insert into National_park table
+    INSERT INTO National_park
+    VALUES
+        (@park_name, @street, @city, @us_state, @postal_code, @establishment_date, @visitor_capacity);
+END
+GO
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for adding park programs to an existing national park 
+DROP PROCEDURE IF EXISTS add_program;
+GO
+CREATE PROCEDURE add_program
+    --input parameters for Program table
+    @park_name VARCHAR(64), 
+    @program_name VARCHAR(64), 
+    @program_type VARCHAR (64), 
+    @program_start_date DATE, 
+    @duration INT
+AS
+BEGIN
+    --insert into Program table
+    INSERT INTO Program
+    VALUES
+        (@park_name, @program_name, @program_type, @program_start_date, @duration);
+END
+GO
 
 
-
-
-
-
-
-
-
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --13. Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (1/week)
 --have three seperate select statements
 --first, display first name, middle initial, last name, ID, and newsletter subscription status from Person table  

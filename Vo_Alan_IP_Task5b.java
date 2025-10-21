@@ -33,6 +33,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "1) Insert a new visitor into the database and associate them with one or more park programs; \n"
 			+ "2) Insert a new ranger into the database and assign them to a ranger team; \n"
 			+ "4) Insert a new donation from a donor; \n"
+			+ "7) Insert a new park program into the database for a specific park; \n"
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
 			+ "18) Quit";
 
@@ -446,7 +447,7 @@ public class Vo_Alan_IP_Task5b {
 				// insert a new donor
 				// ask if they prefer to be anonymous
 				// insert 2 anonymous and 1 not
-				// Collect input data from user
+				// Collect donor info from user
 				System.out.println("Please enter donor's ID: ");
 				final int donor_ID = sc.nextInt();
 				sc.nextLine(); // consume newline character from nextInt
@@ -663,6 +664,74 @@ public class Vo_Alan_IP_Task5b {
 			case "6":
 				break;
 			case "7":
+				sc.nextLine();//consume new line character from next()
+				//ask user if National Park exists yet
+				System.out.println("Does the national park exist yet (Y or N)? "); 
+				final String exists = sc.nextLine();
+				//connect to database 
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					//if park doesn't exist yet, create new National Park before adding new park program(s)
+					System.out.println("Please enter National Park name: "); 
+					final String park_name = sc.nextLine();
+					if (exists.equalsIgnoreCase("N")) {
+						System.out.println("Please enter National Park's street: "); 
+						final String new_park_street = sc.nextLine();
+						System.out.println("Please enter National Park's city: "); 
+						final String new_park_city = sc.nextLine();
+						System.out.println("Please enter National Park's state abbreviation: ");
+						final String new_park_state = sc.nextLine();
+						System.out.println("Please enter National Park's postal code: ");
+						final String new_park_postal = sc.nextLine();
+						System.out.println("Please enter National Park's establishment date (YYYY-MM-DD): "); 
+						final String new_park_establishment = sc.nextLine();
+						System.out.println("Please enter National Park's visitor capacity: ");
+						final int new_park_capacity = sc.nextInt();
+						sc.nextLine(); //consume new line character
+
+						//execute stored procedure that adds new National Park to database first 
+						try (final PreparedStatement statement = connection.prepareStatement("EXEC add_national_park @park_name = ?, @street = ?, @city = ?, @us_state = ?, @postal_code = ?, @establishment_date = ?, @visitor_capacity = ?;")) {
+
+							// set stored procedure input parameters
+							statement.setString(1, park_name);
+							statement.setString(2, new_park_street);
+							statement.setString(3, new_park_city);
+							statement.setString(4, new_park_state);
+							statement.setString(5, new_park_postal);
+							statement.setString(6, new_park_establishment);
+							statement.setInt(7, new_park_capacity);
+
+							// Actually execute the populated query
+							final int rows_inserted = statement.executeUpdate();
+							System.out.println(
+									String.format("Done. %d rows inserted into National_park table.", rows_inserted));
+						}
+					}
+					//otherwise, if national park already exists, new park program given the National Park name (park should already exist, since Program depends on National Park)
+					//prompt user for program data
+					System.out.println("Please enter program name: ");
+					final String program_name = sc.nextLine();
+					System.out.println("Please enter program type (e.g, recreational, educational):");
+					final String program_type = sc.nextLine();
+					System.out.println("Please enter program start date (YYYY-MM-DD): ");
+					final String program_start_date = sc.nextLine();
+					System.out.println("Please enter program duration (in hours): ");
+					final int program_duration = sc.nextInt();					
+					sc.nextLine(); //consume new line character from nextInt
+					//execute stored procedure that inserts into Program table
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC add_program @park_name = ?, @program_name = ?, @program_type = ?, @program_start_date = ?, @duration = ?;")) {
+						// set stored procedure input parameters
+						statement.setString(1, park_name);
+						statement.setString(2, program_name);
+						statement.setString(3, program_type);
+						statement.setString(4, program_start_date);
+						statement.setInt(5, program_duration);
+
+						// Actually execute the populated query
+						final int rows_inserted = statement.executeUpdate();
+						System.out.println(
+								String.format("Done. %d rows inserted into Program table.", rows_inserted));
+					}
+				}
 				break;
 			case "8":
 				break;

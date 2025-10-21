@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS Operates;
 DROP TABLE IF EXISTS Enroll_in;
 DROP TABLE IF EXISTS Hosts; 
 DROP TABLE IF EXISTS Reports_to;
+DROP TABLE IF EXISTS Leader;
 DROP TABLE IF EXISTS Assigned_to;
 DROP TABLE IF EXISTS Mentored_by;
 DROP TABLE IF EXISTS Holds;
@@ -241,7 +242,7 @@ CREATE TABLE Leader(
     person_ID INT,
 
     --person must be assigned to a team first, before they can be leader 
-    CONSTRAINT FK_Leader_person FOREIGN KEY (person_ID) REFERENCES Assigned_to
+    CONSTRAINT FK_Leader_person FOREIGN KEY (person_ID) REFERENCES Assigned_to,
     CONSTRAINT FK_Leader_team FOREIGN KEY (team_ID) REFERENCES Ranger_team
 );
 
