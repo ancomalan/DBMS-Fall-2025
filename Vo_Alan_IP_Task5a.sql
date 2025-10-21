@@ -273,6 +273,62 @@ GO
 
 
 --5. Insert a new researcher into the database and associate them with one or more ranger teams (1/year).
+--stored procedure for inserting new researcher into Person and Researcher tables
+DROP PROCEDURE IF EXISTS insert_researcher;
+GO
+CREATE PROCEDURE insert_researcher
+    --input parameters for Person tables
+    @person_ID INT,
+    @first_name VARCHAR(64),
+    @last_name VARCHAR(64),
+    @middle_initial CHAR(1),
+    @date_of_birth DATE,
+    @gender CHAR(1),
+    @street VARCHAR(100),
+    @city VARCHAR(30),
+    @us_state CHAR(2),
+    @postal_code VARCHAR(10),
+    @subscribed_to_newsletter CHAR(1),
+    --input parameters for researchers
+    @research_field VARCHAR(40),
+    @hire_date DATE, 
+    @salary NUMERIC(8,2)
+AS
+BEGIN
+    --insert into Person table first (parent class of Researcher) 
+    INSERT INTO Person
+    VALUES
+        (@person_ID, @first_name, @last_name, @middle_initial, @date_of_birth, @gender, @street, @city, @us_state, @postal_code, @subscribed_to_newsletter);
+    --insert into Donor table 
+    INSERT INTO Researcher
+    VALUES
+        (@person_ID, @research_field, @hire_date, @salary);
+END
+GO
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--stored procedure for associating researcher with ranger teams
+DROP PROCEDURE IF EXISTS insert_reports_to;
+GO
+CREATE PROCEDURE insert_reports_to
+    --input parameters for Reports_to table
+    @team_ID INT, 
+    @report_date DATE, 
+    @person_ID INT, 
+    @activities_summary VARCHAR(1024)
+AS
+BEGIN
+    --insert into Reports_to table to associate researcher with ranger team
+    INSERT INTO Reports_to
+    VALUES
+        (@team_ID, @report_date, @person_ID, @activities_summary);
+END
+GO
+
+--account for multiple phone numbers, emails, and emergency contacts using stored procedures from query 1 
+
+
+
+
 
 
 
@@ -317,8 +373,20 @@ BEGIN
         (@park_name, @program_name, @program_type, @program_start_date, @duration);
 END
 GO
-
-
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--8. Retrieve the names and contact information of all emergency contacts for a specific person
+DROP PROCEDURE IF EXISTS retrieve_emergency_contacts;
+GO
+CREATE PROCEDURE retrieve_emergency_contacts
+    --input parameter person_ID for person we want to retrieve emergency contacts for
+    @person_ID INT
+AS
+BEGIN
+SELECT contact_name, relationship, phone_number
+FROM Emergency_contact
+WHERE Emergency_contact.person_ID = @person_ID;
+END
+GO
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --13. Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (1/week)
 --have three seperate select statements

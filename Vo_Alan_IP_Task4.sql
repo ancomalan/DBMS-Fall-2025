@@ -249,13 +249,11 @@ CREATE TABLE Leader(
 
 --table representing many-to-one relationship from ranger_team to researcher
 CREATE TABLE Reports_to(
-    team_ID INT NOT NULL, 
-    report_date DATE, 
+    team_ID INT PRIMARY KEY, 
     person_ID INT NOT NULL, --researcher id
+    report_date DATE, 
     activities_summary VARCHAR(1024) NOT NULL, 
 
-    --multi-attribute primary key to allow teams to report on seperate dates 
-    CONSTRAINT PK_reports_to PRIMARY KEY (team_ID, report_date),
     --foreign key constraints
     CONSTRAINT FK_reports_to_team FOREIGN KEY (team_ID) REFERENCES Ranger_team,
     CONSTRAINT FK_reports_to_person_id FOREIGN KEY (person_ID) REFERENCES Researcher --researcher has to exist in the Researcher table
