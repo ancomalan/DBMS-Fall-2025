@@ -1,5 +1,6 @@
 --SQL statements that implement all queries 1-14 with error checking
 --Query 1: Insert a new visitor into the database and associate them with one or more park programs
+--stored procedure for inserting into Person and Visitor tables
 DROP PROCEDURE IF EXISTS insert_visitor;
 GO
 CREATE PROCEDURE insert_visitor
@@ -28,7 +29,7 @@ BEGIN
 END
 GO
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure for associating Visitors with park programs
+--stored procedure for associating Visitors with park programs (assuming that park programs already exist)
 DROP PROCEDURE IF EXISTS enroll_visitors;
 GO
 CREATE PROCEDURE enroll_visitors
@@ -46,7 +47,6 @@ BEGIN
         (@person_ID, @park_name, @program_name, @visit_date, @accessibility_needs);
 END
 GO
-
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --stored procedure for associating Visitors with park passes (adding to Park_pass and Holds tables)
 DROP PROCEDURE IF EXISTS visitor_passes;
@@ -71,7 +71,7 @@ BEGIN
 END
 GO
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple phone numbers)
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple phone numbers
 DROP PROCEDURE IF EXISTS add_phone;
 GO
 CREATE PROCEDURE add_phone
@@ -87,7 +87,7 @@ BEGIN
 END
 GO
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple emails)
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having multiple emails
 DROP PROCEDURE IF EXISTS add_email;
 GO
 CREATE PROCEDURE add_email
@@ -103,7 +103,7 @@ BEGIN
 END
 GO
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having emergency contacts)
+--stored procedure accounting for all people (Rangers, Visitors, Researchers, Donors) possibly having emergency contacts
 DROP PROCEDURE IF EXISTS add_emergency_contact;
 GO
 CREATE PROCEDURE add_emergency_contact
@@ -120,7 +120,6 @@ BEGIN
         (@person_ID, @contact_name, @relationship, @phone_number);
 END
 GO
-
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --Query 2: Insert a new ranger into the database and assign them to a ranger team (2/month).
@@ -176,25 +175,47 @@ BEGIN
         (@person_ID, @certification);
 END
 GO
-
 --use stored procedures for phone numbers, emails, and emergency contacts from query 1 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 --Query 3. Insert a new ranger team into the database and set its leader(1/month).
---insert new ranger team into Ranger_team table
+--insert new ranger team into Ranger_team table using stored procedure 
+--stored procedure for adding ranger team to the database (inserting into Ranger_team table)
+DROP PROCEDURE IF EXISTS insert_ranger_team;
+GO
+CREATE PROCEDURE insert_ranger_team
+    --input parameters for Ranger_team table 
+    @team_ID INT, 
+    @focus_area VARCHAR(64),
+    @formation_date DATE
+AS
+BEGIN
+    --insert into Ranger_team table with input parameters
+    INSERT INTO Ranger_team
+    VALUES
+        (@team_ID, @focus_area, @formation_date);
+END
+GO
+-------------------------------------------------------------------------------------------------
+--create a new ranger who will be leader and assign them to a team using both stored procedures from query 2 above
+--also, use stored procedures from query 1 to account for leader ranger having phone numbers, emails, and emergency contacts 
 
---set leader to an existing ranger (that is not assigned to a team yet)
---if ranger assigned to different team,  update team_ID in Assigned_to to point to new ranger team 
+--create new stored procedure representing how one of the rangers that is assigned to a ranger team will be leading the team.
+DROP PROCEDURE IF EXISTS set_leader;
+GO
+CREATE PROCEDURE set_leader
+    --input parameters needed to insert into the Leader table 
+    @team_ID INT,
+    @person_ID INT
+AS
+BEGIN
+    --insert into Leader table with input parameters
+    INSERT INTO Leader
+    VALUES
+        (@team_ID, @person_ID);
+END
+GO
 
---then create 
--- INSERT INTO Ranger_team
--- VALUES 
--- (9, 'Preservation of wildlife', '2023-10-10');
-
--- INSERT INTO Assigned_to
--- VALUES 
--- (3, 9, '2023-12-12', 'active', 'leader');
 
 -----------------------------------------------------------------------------------------------
 --Query 4. Insert a new donation from a donor (5/day). 
@@ -271,7 +292,6 @@ END
 GO
 
 
-
 --5. Insert a new researcher into the database and associate them with one or more ranger teams (1/year).
 --stored procedure for inserting new researcher into Person and Researcher tables
 DROP PROCEDURE IF EXISTS insert_researcher;
@@ -322,8 +342,8 @@ BEGIN
 END
 GO
 --account for multiple phone numbers, emails, and emergency contacts using stored procedures from query 1 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --6.Insert a report submitted by a ranger team to a researcher
 --stored procedure for updating report_date and activities_summary columns for tuple in Reports_to table with given team_ID and researcher id
 DROP PROCEDURE IF EXISTS add_report;
@@ -343,6 +363,7 @@ BEGIN
     WHERE Reports_to.team_ID = @team_ID AND Reports_to.person_ID = @person_ID;
 END
 GO
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --7. Insert a new park program into the database for a specific park (2/month).
 --stored procedure for adding national park to database if it doesn't exist yet. 
@@ -400,6 +421,7 @@ FROM Emergency_contact
 WHERE Emergency_contact.person_ID = @person_ID;
 END
 GO
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --13. Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (1/week)
 --have three seperate select statements

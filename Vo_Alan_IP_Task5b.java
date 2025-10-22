@@ -33,6 +33,7 @@ public class Vo_Alan_IP_Task5b {
 	final static String PROMPT = "\nPlease select one of the options below: \n"
 			+ "1) Insert a new visitor into the database and associate them with one or more park programs; \n"
 			+ "2) Insert a new ranger into the database and assign them to a ranger team; \n"
+			+ "3) Insert a new ranger team into the database and set its leader; \n"
 			+ "4) Insert a new donation from a donor; \n"
 			+ "5) Insert a new researcher into the database and associate them with one or more ranger teams; \n"
 			+ "6) Insert a report submitted by a ranger team to a researcher; \n"
@@ -322,15 +323,13 @@ public class Vo_Alan_IP_Task5b {
 				System.out.println("Is person subscribed to newsletter from NPSS? (Y or N): ");
 				final String ranger_subscription_status = sc.nextLine();
 
-				System.out.println("Please enter ranger team's team_ID that you want to assign ranger to: ");
+				System.out.println("Please enter ranger team's team_ID that you want to assign ranger to: "); //assuming that ranger team already exists in database
 				final int ranger_team_ID = sc.nextInt();
 				sc.nextLine();// consume new line character from preceding line
 				System.out.println("Please enter ranger's start date (YYYY-MM-DD): ");
 				final String ranger_start_date = sc.nextLine();
 				System.out.println("Please enter ranger's status (active or inactive): ");
 				final String ranger_status = sc.nextLine();
-				System.out.println("Please enter ranger's role (member or leader): ");
-				final String ranger_role = sc.nextLine();
 
 				// execute queries in database
 				System.out.println("Connecting to the database...");
@@ -338,7 +337,7 @@ public class Vo_Alan_IP_Task5b {
 				try (final Connection connection = DriverManager.getConnection(URL)) {
 					// insert into Person, Ranger, and Assigned_to tables using stored procedure
 					try (final PreparedStatement statement = connection.prepareStatement(
-							"EXEC query_2 @person_ID = ?, @first_name = ?, @last_name = ?, @middle_initial = ?, @date_of_birth = ?, @gender = ?, @street = ?, @city = ?, @us_state = ?, @postal_code = ?, @subscribed_to_newsletter = ?, @team_ID = ?, @ranger_start_date = ?, @ranger_status = ?, @ranger_role =?;")) {
+							"EXEC query_2 @person_ID = ?, @first_name = ?, @last_name = ?, @middle_initial = ?, @date_of_birth = ?, @gender = ?, @street = ?, @city = ?, @us_state = ?, @postal_code = ?, @subscribed_to_newsletter = ?, @team_ID = ?, @ranger_start_date = ?, @ranger_status = ?;")) {
 						// Setting the storage procedure input parameter values
 						statement.setInt(1, ranger_ID);
 						statement.setString(2, ranger_first_name);
@@ -354,7 +353,6 @@ public class Vo_Alan_IP_Task5b {
 						statement.setInt(12, ranger_team_ID);
 						statement.setString(13, ranger_start_date);
 						statement.setString(14, ranger_status);
-						statement.setString(15, ranger_role);
 
 						// Actually execute the populated query
 						final int rows_inserted = statement.executeUpdate();
@@ -363,11 +361,8 @@ public class Vo_Alan_IP_Task5b {
 								rows_inserted));
 					}
 					// account for multi-valued attributes of ranger certifications
-					try (final PreparedStatement statement = connection
-							.prepareStatement(
-									"EXEC add_ranger_certification @person_ID = ?, @certification = ?;")) {
-						System.out
-						.println("How many certifications would you like to add for ranger (0 for none)?");
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC add_ranger_certification @person_ID = ?, @certification = ?;")) {
+						System.out.println("How many certifications would you like to add for ranger (0 for none)?");
 						final int num_certifications = sc.nextInt();
 						sc.nextLine();// consume new line character from nextInt
 
@@ -470,6 +465,211 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "3":
+				// Collect input to insert into Ranger_team table
+				System.out.println("Please enter new ranger team's id: ");
+				final int new_team_ID = sc.nextInt(); 
+				sc.nextLine();//consume newline character from preceding nextInt()
+				System.out.println("Please enter new ranger team's focus area (e.g., wildlife protection): ");
+				final String focus_area = sc.nextLine();
+				System.out.println("Please enter new ranger team's formation date (YYYY-MM-DD): ");
+				final String formation_date = sc.nextLine();
+
+				//get user input to create new ranger who will lead the team and assign them to the new ranger team
+				System.out.println("Please enter team leader's id: ");
+				final int leader_ID = sc.nextInt(); 
+				sc.nextLine(); // consume newline character from nextInt
+
+				System.out.println("Please enter team leader's first name:");
+				final String leader_first_name = sc.nextLine();
+
+				System.out.println("Please enter team leader's last name:");
+				final String leader_last_name = sc.nextLine();
+
+				System.out.println("Please enter team leader's middle initial (1 character, if any): ");
+				final String leader_middle_initial = sc.nextLine();
+
+				System.out.println("Please enter team leader's DOB (YYYY-MM-DD): ");
+				final String leader_DOB = sc.nextLine();
+
+				System.out.println("Please enter team leader's gender (M or F): ");
+				final String leader_gender = sc.nextLine();
+
+				System.out.println("Please enter team leader's street address: ");
+				final String leader_street = sc.nextLine();
+
+				System.out.println("Please enter team leader's city: ");
+				final String leader_city = sc.nextLine();
+
+				System.out.println("Please enter team leader's state abbreviation (e.g., AZ): ");
+				final String leader_state = sc.nextLine();
+
+				System.out.println("Please enter leader's postal code: ");
+				final String leader_postal_code = sc.nextLine();
+
+				System.out.println("Is team leader subscribed to newsletter from NPSS? (Y or N): ");
+				final String leader_subscription_status = sc.nextLine();
+
+				System.out.println("Please enter team leader's start date (YYYY-MM-DD): ");
+				final String leader_start_date = sc.nextLine();
+				System.out.println("Please enter team leader's status (active or inactive): ");
+				final String leader_status = sc.nextLine();
+
+				// execute queries in database
+				System.out.println("Connecting to the database...");
+				// Get a database connection and prepare a query statement
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					//use stored procedure to insert new ranger team into the database
+					try (final PreparedStatement statement = connection.prepareStatement(
+							"EXEC insert_ranger_team @team_ID = ?, @focus_area = ?, @formation_date = ?;")) {
+						// Setting the storage procedure input parameter values
+						statement.setInt(1, new_team_ID);
+						statement.setString(2, focus_area);
+						statement.setString(3, formation_date);
+
+						// Actually execute the populated query
+						final int rows_inserted = statement.executeUpdate();
+						System.out.println(String.format(
+								"Done. %d rows inserted into Ranger_team table.",
+								rows_inserted));
+					}
+					//create new ranger who will be team leader for new ranger team
+					// insert into Person, Ranger, and Assigned_to tables using stored procedure
+					try (final PreparedStatement statement = connection.prepareStatement(
+							"EXEC query_2 @person_ID = ?, @first_name = ?, @last_name = ?, @middle_initial = ?, @date_of_birth = ?, @gender = ?, @street = ?, @city = ?, @us_state = ?, @postal_code = ?, @subscribed_to_newsletter = ?, @team_ID = ?, @ranger_start_date = ?, @ranger_status = ?;")) {
+						// Setting the storage procedure input parameter values
+						statement.setInt(1, leader_ID);
+						statement.setString(2, leader_first_name);
+						statement.setString(3, leader_last_name);
+						statement.setString(4, leader_middle_initial);
+						statement.setString(5, leader_DOB);
+						statement.setString(6, leader_gender);
+						statement.setString(7, leader_street);
+						statement.setString(8, leader_city);
+						statement.setString(9, leader_state);
+						statement.setString(10, leader_postal_code);
+						statement.setString(11, leader_subscription_status);
+						statement.setInt(12, new_team_ID);
+						statement.setString(13, leader_start_date);
+						statement.setString(14, leader_status);
+
+						// Actually execute the populated query
+						final int rows_inserted = statement.executeUpdate();
+						System.out.println(String.format(
+								"Done. %d rows inserted into Person, Ranger, and Assigned_to tables.",
+								rows_inserted));
+					}
+					// account for multi-valued attributes of ranger certifications for the team leader
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC add_ranger_certification @person_ID = ?, @certification = ?;")) {
+						System.out.println("How many certifications would you like to add for team leader (0 for none)?");
+						final int num_certifications = sc.nextInt();
+						sc.nextLine();// consume new line character from nextInt
+
+						// loop based on how many certifications that the user wants to insert
+						for (int i = 0; i < num_certifications; i++) {
+							System.out.println("Please enter certification for team leader: ");
+							String certification = sc.nextLine(); // variable is not final since it needs to be
+							// reassigned after every iteration
+
+							// populate query template
+							statement.setInt(1, leader_ID);
+							statement.setString(2, certification);
+							// Actually execute the populated query
+							final int rows_inserted = statement.executeUpdate();
+							System.out.println(
+									String.format("Done. %d rows inserted into Ranger_certification table.",
+											rows_inserted));
+						}
+					}
+					// account for multi-valued attribute of phone numbers
+					try (final PreparedStatement statement = connection
+							.prepareStatement("EXEC add_phone @person_ID = ?, @phone_number = ?;")) {
+						System.out.println("How many phone numbers would you like to add for team leader (0 for none)?");
+						final int num_phones = sc.nextInt();
+						sc.nextLine();// consume new line character from nextInt
+
+						// loop based on how many phone numbers that the user wants to insert
+						for (int i = 0; i < num_phones; i++) {
+							System.out.println("Please enter phone number for team leader: ");
+							String phone_number = sc.nextLine(); // variable is not final since it needs to be
+							// reassigned after every iteration
+
+							// set stored procedure input parameters
+							statement.setInt(1, leader_ID);
+							statement.setString(2, phone_number);
+							// Actually execute the populated query
+							final int rows_inserted = statement.executeUpdate();
+							System.out.println(
+									String.format("Done. %d rows inserted into Person_phone table.",
+											rows_inserted));
+						}
+					}
+					// account for multi-valued attribute of email
+					try (final PreparedStatement statement = connection
+							.prepareStatement("EXEC add_email @person_ID = ?, @email_address = ?;")) {
+						System.out
+						.println("How many email addresses would you like to add for team leader (0 for none)?");
+						final int num_emails = sc.nextInt();
+						sc.nextLine();// consume new line character from nextInt
+
+						// loop based on how many phone numbers that the user wants to insert
+						for (int i = 0; i < num_emails; i++) {
+							System.out.println("Please enter email for team leader: ");
+							String email = sc.nextLine(); // variable is not final since it needs to be reassigned
+							// after
+							// every iteration
+
+							// set input parameters for stored procedure
+							statement.setInt(1, leader_ID);
+							statement.setString(2, email);
+							// Actually execute the populated query
+							final int rows_inserted = statement.executeUpdate();
+							System.out.println(
+									String.format("Done. %d rows inserted into Person_email table.",
+											rows_inserted));
+						}
+					}
+					// lastly, account for emergency contacts that each team leader might have (used in query 8)
+					try (final PreparedStatement statement = connection.prepareStatement(
+							"EXEC add_emergency_contact @person_ID = ?, @contact_name = ?, @relationship = ?, @phone_number = ?;")) {
+						System.out.println("How many emergency contacts would you like to add for this team leader (0 for none)?");
+						final int number_contacts = sc.nextInt(); // use in for loop
+						sc.nextLine();// consume new line character from nextInt
+
+						// loop based on how many emergency contacts that the user wants to insert
+						for (int i = 0; i < number_contacts; i++) {
+							// collect all attributes for Emergency_contact
+							System.out.println("Please enter emergency contact name: ");
+							String contact_name = sc.nextLine(); // variable is not final since it needs to be
+							// reassigned after every iteration
+							System.out.println("Please enter relationship to the team leader: ");
+							String relationship = sc.nextLine();
+							System.out.println("Please enter phone number for emergency contact: ");
+							String emergency_phone_number = sc.nextLine();
+
+							// populate query template
+							statement.setInt(1, leader_ID);
+							statement.setString(2, contact_name);
+							statement.setString(3, relationship);
+							statement.setString(4, emergency_phone_number);
+
+							// Actually execute the populated query
+							final int rows_inserted = statement.executeUpdate();
+							System.out.println(String.format("Done. %d rows inserted into Emergency_contact table.",
+									rows_inserted));
+						}
+					}
+					//set this ranger as the leader of the new ranger team using stored procedure 
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC set_leader @team_ID = ?, @person_ID = ?;")) {
+
+						// populate query template
+						statement.setInt(1, new_team_ID);
+						statement.setInt(2, leader_ID);
+						// Actually execute the populated query
+						final int rows_inserted = statement.executeUpdate();
+						System.out.println(String.format("Done. %d rows inserted into Leader table.",
+								rows_inserted));
+					}
+				}
 				break;
 			case "4":
 				// insert a new donor
@@ -979,8 +1179,11 @@ public class Vo_Alan_IP_Task5b {
 			case "8":
 				// get emergency contacts for a specific person using stored procedure
 				System.out.println(
-						"Please enter person_ID of person who you want to retrieve emergency contacts for: ");
-				//prompt user for person_ID
+						"Please enter person_ID of person who you want to retrieve emergency contacts for: ");// prompt
+				// user
+				// for
+				// person
+				// id
 				final int id = sc.nextInt();
 				sc.nextLine();// consume new line character from nextInt
 				System.out.println("Connecting to the database...");
