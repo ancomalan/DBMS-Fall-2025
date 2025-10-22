@@ -307,29 +307,27 @@ END
 GO
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --stored procedure for associating researcher with ranger teams
-DROP PROCEDURE IF EXISTS insert_reports_to;
+DROP PROCEDURE IF EXISTS query_5;
 GO
-CREATE PROCEDURE insert_reports_to
-    --input parameters for Reports_to table
+CREATE PROCEDURE query_5
+    --only insert team_ID and person_ID (reports added later in query 6)
     @team_ID INT, 
-    @report_date DATE, 
-    @person_ID INT, 
-    @activities_summary VARCHAR(1024)
+    @person_ID INT
 AS
 BEGIN
-    --insert into Reports_to table to associate researcher with ranger team
+    --insert into Reports_to table to associate researcher with ranger team (NULL values for report date and summary because we are updating them in query 6)
     INSERT INTO Reports_to
     VALUES
-        (@team_ID, @report_date, @person_ID, @activities_summary);
+        (@team_ID, @person_ID, NULL, NULL);
 END
 GO
-
 --account for multiple phone numbers, emails, and emergency contacts using stored procedures from query 1 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
-
-
+--6.Insert a report submitted by a ranger team to a researcher
+--stored procedure for updating report_date and activities_summary columns for tuple in Reports_to table with given team_ID and researcher id
 
 
 
@@ -373,6 +371,8 @@ BEGIN
         (@park_name, @program_name, @program_type, @program_start_date, @duration);
 END
 GO
+
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --8. Retrieve the names and contact information of all emergency contacts for a specific person
 DROP PROCEDURE IF EXISTS retrieve_emergency_contacts;

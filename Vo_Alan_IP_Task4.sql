@@ -250,9 +250,9 @@ CREATE TABLE Leader(
 --table representing many-to-one relationship from ranger_team to researcher
 CREATE TABLE Reports_to(
     team_ID INT PRIMARY KEY, 
-    person_ID INT NOT NULL, --researcher id
+    person_ID INT NOT NULL, 
     report_date DATE, 
-    activities_summary VARCHAR(1024) NOT NULL, 
+    activities_summary VARCHAR(1024), 
 
     --foreign key constraints
     CONSTRAINT FK_reports_to_team FOREIGN KEY (team_ID) REFERENCES Ranger_team,
