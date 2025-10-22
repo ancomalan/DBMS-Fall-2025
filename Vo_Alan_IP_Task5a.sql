@@ -324,13 +324,26 @@ GO
 --account for multiple phone numbers, emails, and emergency contacts using stored procedures from query 1 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
 --6.Insert a report submitted by a ranger team to a researcher
 --stored procedure for updating report_date and activities_summary columns for tuple in Reports_to table with given team_ID and researcher id
-
-
-
+DROP PROCEDURE IF EXISTS add_report;
+GO
+CREATE PROCEDURE add_report
+    --need team_ID and person_ID to get correct tuple that associates specific ranger team with one researcher 
+    @team_ID INT, 
+    @person_ID INT,
+    --using the above input parameters, update the report_date and activities_summary columns for the corresponding tuple 
+    @report_date DATE, 
+    @activities_summary VARCHAR(1024)
+AS
+BEGIN
+    --use update statement (for certain ranger team and researcher combo) 
+    UPDATE Reports_to
+    SET report_date = @report_date, activities_summary = @activities_summary
+    WHERE Reports_to.team_ID = @team_ID AND Reports_to.person_ID = @person_ID;
+END
+GO
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --7. Insert a new park program into the database for a specific park (2/month).
 --stored procedure for adding national park to database if it doesn't exist yet. 
 DROP PROCEDURE IF EXISTS add_national_park;

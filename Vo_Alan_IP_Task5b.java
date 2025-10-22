@@ -35,6 +35,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "2) Insert a new ranger into the database and assign them to a ranger team; \n"
 			+ "4) Insert a new donation from a donor; \n"
 			+ "5) Insert a new researcher into the database and associate them with one or more ranger teams; \n"
+			+ "6) Insert a report submitted by a ranger team to a researcher; \n"
 			+ "7) Insert a new park program into the database for a specific park; \n"
 			+ "8) Retrieve the names and contact information of all emergency contacts for a specific person; \n"
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
@@ -869,6 +870,35 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "6":
+				// Prompt user for team_ID of ranger team and person_ID of researcher to access tuple indicating their relationship
+				System.out.println("Please enter ranger team ID: ");
+				final int team_ID = sc.nextInt();
+				sc.nextLine();//consume new line character from nextInt()
+				System.out.println("Please enter researcher ID that ranger team reports to: ");
+				final int researcher_id = sc.nextInt();
+				sc.nextLine();//consume new line character from nextInt()
+				System.out.println("Please enter report date (YYYY-MM-DD):");
+				final String report_date = sc.nextLine();
+				System.out.println("Please enter summary of activities for the report: ");
+				final String activities_summary = sc.nextLine();
+
+				// execute queries in database
+				System.out.println("Connecting to the database...");
+				// Get a database connection and prepare a query statement
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					//use stored procedure to insert the report submitted from a ranger team to a researcher
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC add_report @team_ID = ?, @person_ID = ?, @report_date = ?, @activities_summary = ?;")) {
+						// Populate the query template with the data collected from the user
+						statement.setInt(1, team_ID);
+						statement.setInt(2, researcher_id);
+						statement.setString(3, report_date);
+						statement.setString(4, activities_summary);
+
+						// Actually execute the populated query
+						statement.executeUpdate();
+						System.out.println("Done. Added report submitted from ranger team to researcher");
+					}
+				}
 				break;
 			case "7":
 				sc.nextLine();// consume new line character from next()
@@ -949,11 +979,8 @@ public class Vo_Alan_IP_Task5b {
 			case "8":
 				// get emergency contacts for a specific person using stored procedure
 				System.out.println(
-						"Please enter person_ID of person who you want to retrieve emergency contacts for: ");// prompt
-				// user
-				// for
-				// person
-				// id
+						"Please enter person_ID of person who you want to retrieve emergency contacts for: ");
+				//prompt user for person_ID
 				final int id = sc.nextInt();
 				sc.nextLine();// consume new line character from nextInt
 				System.out.println("Connecting to the database...");
