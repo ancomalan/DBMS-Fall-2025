@@ -423,6 +423,25 @@ END
 GO
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--9.Retrieve the list of visitors enrolled in a specific park program, including their accessibility needs
+DROP PROCEDURE IF EXISTS retrieve_visitor_enrollment;
+GO
+CREATE PROCEDURE retrieve_visitor_enrollment
+    --program is identified by park_name and program_name (weak entity set)
+    @park_name VARCHAR(64),
+    @program_name VARCHAR(64)
+AS
+BEGIN 
+SELECT Person.person_ID, first_name, last_name, visit_date, accessibility_needs
+FROM Person, Enroll_in
+WHERE Enroll_in.park_name = @park_name AND Enroll_in.program_name = @program_name AND Person.person_ID = Enroll_in.person_ID
+END
+GO
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --13. Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (1/week)
 --have three seperate select statements
 --first, display first name, middle initial, last name, ID, and newsletter subscription status from Person table  
