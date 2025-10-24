@@ -438,6 +438,24 @@ WHERE Enroll_in.park_name = @park_name AND Enroll_in.program_name = @program_nam
 END
 GO
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+--10. Retrieve all park programs for a specific park that started after a given date 
+DROP PROCEDURE IF EXISTS query_10;
+GO
+CREATE PROCEDURE query_10
+    @park_name VARCHAR(64),
+    @given_date DATE
+AS
+BEGIN 
+--get all programs from a National park that started after given date using >
+SELECT * 
+FROM Program
+WHERE park_name = @park_name AND program_start_date > @given_date;
+END
+GO
+
+
+
 
 
 

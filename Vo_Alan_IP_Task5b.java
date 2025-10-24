@@ -40,6 +40,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "7) Insert a new park program into the database for a specific park; \n"
 			+ "8) Retrieve the names and contact information of all emergency contacts for a specific person; \n"
 			+ "9) Retrieve the list of visitors enrolled in a specific park program, including their accessibility needs; \n"
+			+ "10) Retrieve all park programs for a specific park that started after a given date; \n"
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
 			+ "18) Quit";
 
@@ -1248,6 +1249,40 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "10":
+				//Retrieve all park programs for a specific park that started after a given date
+				//prompt user for National Park name so that we can look for all programs associated with it in Program table
+				sc.nextLine(); //consume newline character from next()
+				System.out.println("Please enter National Park name: ");
+				final String national_park = sc.nextLine();
+				System.out.println("Please enter date (YYYY-MM-DD): ");//prompt for date 
+				final String date = sc.nextLine();
+
+				//execute stored procedure with given National Park and given date
+				System.out.println("Connecting to the database...");
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					System.out.println("Dispatching the query...");
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC query_10 @park_name = ?, @given_date = ?;")) {
+
+						// Setting the storage procedure input parameter values
+						statement.setString(1, national_park);
+						statement.setString(2, date);
+						// Call the stored procedure
+						ResultSet resultSet = statement.executeQuery();
+
+						System.out.println("Park Programs for " + national_park + " that started after " + date);
+						System.out.println("National Park | Program Name | Program Type | Program Start Date | Duration (hours) ");
+
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s | %s | %s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2),
+									resultSet.getString(3),
+									resultSet.getString(4),
+									resultSet.getString(5)
+									));
+						}
+					}
+				}
 				break;
 			case "11":
 				// donors are NOT assumed to all be anonymous
