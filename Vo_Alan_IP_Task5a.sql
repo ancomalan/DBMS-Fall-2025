@@ -220,7 +220,8 @@ GO
 -----------------------------------------------------------------------------------------------
 --Query 4. Insert a new donation from a donor (5/day). 
 --would also use stored procedures from query 1 for adding emails, phone numbers, and emergency contacts 
---stored procedure for inserting donor into Person and Donor tables
+--stored procedure for inserting donor into Person and Donor tables if they do not exist yet 
+--use stored procedures from query 1 to account for donor possibly having multiple phone numbers, emails, and emergency contacts
 DROP PROCEDURE IF EXISTS insert_donor;
 GO
 CREATE PROCEDURE insert_donor
@@ -454,8 +455,15 @@ WHERE park_name = @park_name AND program_start_date > @given_date;
 END
 GO
 
+--11. Retrieve the total and average donation amount received in a month from all anonymous donors. The result must be sorted by total amount of the donation in descending order
+SELECT SUM(amount) AS total_donations, AVG(amount) AS avg_donations
+FROM 
+(SELECT person_ID, donation_date, amount FROM Check_donation 
+UNION 
+SELECT person_ID, donation_date, amount FROM Credit_card_donation) AS all_donations)
 
 
+--12.  Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member)
 
 
 

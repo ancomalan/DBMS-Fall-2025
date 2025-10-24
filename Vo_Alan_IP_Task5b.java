@@ -674,78 +674,162 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "4":
-				// insert a new donor
-				// ask if they prefer to be anonymous
-				// insert 2 anonymous and 1 not
-				// Collect donor info from user
-				System.out.println("Please enter donor's ID: ");
-				final int donor_ID = sc.nextInt();
-				sc.nextLine(); // consume newline character from nextInt
+				// insert a new donor if they do not already exist, otherwise add donation for existing donor
+				// insert some anonymous and some not to test query 11
+				sc.nextLine();//consume new line character from sc.next()
+				System.out.println("Does donor already exist (Y or N)?");
+				final String donor_exists = sc.nextLine();
 
-				System.out.println("Please enter donor's first name:");
-				final String donor_first_name = sc.nextLine();
-
-				System.out.println("Please enter donor's last name:");
-				final String donor_last_name = sc.nextLine();
-
-				System.out.println("Please enter donor's middle initial (1 character, if any): ");
-				final String donor_middle_initial = sc.nextLine();
-
-				System.out.println("Please enter donor's DOB (YYYY-MM-DD): ");
-				final String donor_DOB = sc.nextLine();
-
-				System.out.println("Please enter donor's gender (M or F): ");
-				final String donor_gender = sc.nextLine();
-
-				System.out.println("Please enter donor's street address: ");
-				final String donor_street = sc.nextLine();
-
-				System.out.println("Please enter donor's city: ");
-				final String donor_city = sc.nextLine();
-
-				System.out.println("Please enter donor's state abbreviation (e.g., AZ): ");
-				final String donor_state = sc.nextLine();
-
-				System.out.println("Please enter donor's postal code: ");
-				final String donor_postal_code = sc.nextLine();
-
-				System.out.println("Is donor subscribed to newsletter from NPSS? (Y or N): ");
-				final String donor_subscription_status = sc.nextLine();
-
-				System.out.println("Is donor anonymous (Y or N)? "); // ask if donor is anonymous or not
-				final String anonymity_preference = sc.nextLine();
-
-				System.out.println("What type of donation (check OR credit card)? "); // ask what type of donation
-				// it is
-				final String donation_type = sc.nextLine();
 
 				// execute queries in database
 				System.out.println("Connecting to the database...");
 				// Get a database connection and prepare a query statement
 				try (final Connection connection = DriverManager.getConnection(URL)) {
-					// insert into Person and Donor tables
-					try (final PreparedStatement statement = connection.prepareStatement(
-							"EXEC insert_donor @person_ID = ?, @first_name = ?, @last_name = ?, @middle_initial = ?, @date_of_birth = ?, @gender = ?, @street = ?, @city = ?, @us_state = ?, @postal_code = ?, @subscribed_to_newsletter = ?, @anonymity_preference = ?;")) {
-						// Setting the storage procedure input parameter values
-						statement.setInt(1, donor_ID);
-						statement.setString(2, donor_first_name);
-						statement.setString(3, donor_last_name);
-						statement.setString(4, donor_middle_initial);
-						statement.setString(5, donor_DOB);
-						statement.setString(6, donor_gender);
-						statement.setString(7, donor_street);
-						statement.setString(8, donor_city);
-						statement.setString(9, donor_state);
-						statement.setString(10, donor_postal_code);
-						statement.setString(11, donor_subscription_status);
-						statement.setString(12, anonymity_preference);
+					// create new donor accounting for them having multiple phone #'s, emails, and emergency contacts 
+					System.out.println("Please enter donor's ID: ");
+					final int donor_ID = sc.nextInt();
+					sc.nextLine(); // consume newline character from nextInt
 
-						// Actually execute the populated query
-						final int rows_inserted = statement.executeUpdate();
-						System.out.println(
-								String.format("Done. %d rows inserted into Person and Donor tables.",
+					if (donor_exists.equalsIgnoreCase("N")) {
+						System.out.println("Please enter donor's first name:");
+						final String donor_first_name = sc.nextLine();
+
+						System.out.println("Please enter donor's last name:");
+						final String donor_last_name = sc.nextLine();
+
+						System.out.println("Please enter donor's middle initial (1 character, if any): ");
+						final String donor_middle_initial = sc.nextLine();
+
+						System.out.println("Please enter donor's DOB (YYYY-MM-DD): ");
+						final String donor_DOB = sc.nextLine();
+
+						System.out.println("Please enter donor's gender (M or F): ");
+						final String donor_gender = sc.nextLine();
+
+						System.out.println("Please enter donor's street address: ");
+						final String donor_street = sc.nextLine();
+
+						System.out.println("Please enter donor's city: ");
+						final String donor_city = sc.nextLine();
+
+						System.out.println("Please enter donor's state abbreviation (e.g., AZ): ");
+						final String donor_state = sc.nextLine();
+
+						System.out.println("Please enter donor's postal code: ");
+						final String donor_postal_code = sc.nextLine();
+
+						System.out.println("Is donor subscribed to newsletter from NPSS? (Y or N): ");
+						final String donor_subscription_status = sc.nextLine();
+
+						System.out.println("Is donor anonymous (Y or N)? "); // ask if donor is anonymous or not
+						final String anonymity_preference = sc.nextLine();
+
+						try (final PreparedStatement statement = connection.prepareStatement(
+								"EXEC insert_donor @person_ID = ?, @first_name = ?, @last_name = ?, @middle_initial = ?, @date_of_birth = ?, @gender = ?, @street = ?, @city = ?, @us_state = ?, @postal_code = ?, @subscribed_to_newsletter = ?, @anonymity_preference = ?;")) {
+							// Setting the storage procedure input parameter values
+							statement.setInt(1, donor_ID);
+							statement.setString(2, donor_first_name);
+							statement.setString(3, donor_last_name);
+							statement.setString(4, donor_middle_initial);
+							statement.setString(5, donor_DOB);
+							statement.setString(6, donor_gender);
+							statement.setString(7, donor_street);
+							statement.setString(8, donor_city);
+							statement.setString(9, donor_state);
+							statement.setString(10, donor_postal_code);
+							statement.setString(11, donor_subscription_status);
+							statement.setString(12, anonymity_preference);
+
+							// Actually execute the populated query
+							final int rows_inserted = statement.executeUpdate();
+							System.out.println(
+									String.format("Done. %d rows inserted into Person and Donor tables.",
+											rows_inserted));
+						}
+						// account for multi-valued attribute of phone numbers
+						try (final PreparedStatement statement = connection
+								.prepareStatement("EXEC add_phone @person_ID = ?, @phone_number = ?;")) {
+							System.out.println("How many phone numbers would you like to add for donor (0 for none)?");
+							final int num_phones = sc.nextInt();
+							sc.nextLine();// consume new line character from nextInt
+
+							// loop based on how many phone numbers that the user wants to insert
+							for (int i = 0; i < num_phones; i++) {
+								System.out.println("Please enter phone number for donor: ");
+								String phone_number = sc.nextLine(); // variable is not final since it needs to be
+								// reassigned after every iteration
+
+								// set stored procedure input parameters
+								statement.setInt(1, donor_ID);
+								statement.setString(2, phone_number);
+								// Actually execute the populated query
+								final int rows_inserted = statement.executeUpdate();
+								System.out.println(
+										String.format("Done. %d rows inserted into Person_phone table.",
+												rows_inserted));
+							}
+						}
+						// account for multi-valued attribute of email
+						try (final PreparedStatement statement = connection
+								.prepareStatement("EXEC add_email @person_ID = ?, @email_address = ?;")) {
+							System.out
+							.println("How many email addresses would you like to add for donor (0 for none)?");
+							final int num_emails = sc.nextInt();
+							sc.nextLine();// consume new line character from nextInt
+
+							// loop based on how many phone numbers that the user wants to insert
+							for (int i = 0; i < num_emails; i++) {
+								System.out.println("Please enter email for donor: ");
+								String email = sc.nextLine(); // variable is not final since it needs to be reassigned
+								// after
+								// every iteration
+
+								// set input parameters for stored procedure
+								statement.setInt(1, donor_ID);
+								statement.setString(2, email);
+								// Actually execute the populated query
+								final int rows_inserted = statement.executeUpdate();
+								System.out.println(
+										String.format("Done. %d rows inserted into Person_email table.",
+												rows_inserted));
+							}
+						}
+						// lastly, account for emergency contacts that each ranger might have (used in
+						// query 8)
+						try (final PreparedStatement statement = connection.prepareStatement(
+								"EXEC add_emergency_contact @person_ID = ?, @contact_name = ?, @relationship = ?, @phone_number = ?;")) {
+							System.out.println(
+									"How many emergency contacts would you like to add for this donor (0 for none)?");
+							final int number_contacts = sc.nextInt(); // use in for loop
+							sc.nextLine();// consume new line character from nextInt
+
+							// loop based on how many emergency contacts that the user wants to insert
+							for (int i = 0; i < number_contacts; i++) {
+								// collect all attributes for Emergency_contact
+								System.out.println("Please enter emergency contact name: ");
+								String contact_name = sc.nextLine(); // variable is not final since it needs to be
+								// reassigned after every iteration
+								System.out.println("Please enter relationship to the donor: ");
+								String relationship = sc.nextLine();
+								System.out.println("Please enter phone number for emergency contact: ");
+								String emergency_phone_number = sc.nextLine();
+
+								// populate query template
+								statement.setInt(1, donor_ID);
+								statement.setString(2, contact_name);
+								statement.setString(3, relationship);
+								statement.setString(4, emergency_phone_number);
+
+								// Actually execute the populated query
+								final int rows_inserted = statement.executeUpdate();
+								System.out.println(String.format("Done. %d rows inserted into Emergency_contact table.",
 										rows_inserted));
+							}
+						}
 					}
+					//prompt user for what type of donation that they want to make (credit or check)
+					System.out.println("What type of donation would you like to insert for the donor (check OR credit card)? "); 
+					final String donation_type = sc.nextLine();
 					// execute insertion query based on donation type
 					if (donation_type.equalsIgnoreCase("check")) {
 						// call stored procedure that inserts into Check_donation table
@@ -755,11 +839,7 @@ public class Vo_Alan_IP_Task5b {
 							System.out.println("Please enter donation date: ");
 							final String check_donation_date = sc.nextLine();
 							System.out.println("Please enter donation amount: ");
-							BigDecimal check_donation_amount = new BigDecimal(sc.nextLine()); // use BigDecimal for
-							// donation amount
-							// because it gets
-							// converted to
-							// NUMERIC
+							BigDecimal check_donation_amount = new BigDecimal(sc.nextLine()); // use BigDecimal for donation amount because it gets converted to NUMERIC
 							System.out.println("Please enter campaign name (optional): ");
 							final String campaign_name = sc.nextLine();
 							System.out.println("Please enter check number: ");
@@ -815,87 +895,6 @@ public class Vo_Alan_IP_Task5b {
 											rows_inserted));
 						}
 					}
-
-					// account for multi-valued attribute of phone numbers
-					try (final PreparedStatement statement = connection
-							.prepareStatement("EXEC add_phone @person_ID = ?, @phone_number = ?;")) {
-						System.out.println("How many phone numbers would you like to add for donor (0 for none)?");
-						final int num_phones = sc.nextInt();
-						sc.nextLine();// consume new line character from nextInt
-
-						// loop based on how many phone numbers that the user wants to insert
-						for (int i = 0; i < num_phones; i++) {
-							System.out.println("Please enter phone number for donor: ");
-							String phone_number = sc.nextLine(); // variable is not final since it needs to be
-							// reassigned after every iteration
-
-							// set stored procedure input parameters
-							statement.setInt(1, donor_ID);
-							statement.setString(2, phone_number);
-							// Actually execute the populated query
-							final int rows_inserted = statement.executeUpdate();
-							System.out.println(
-									String.format("Done. %d rows inserted into Person_phone table.",
-											rows_inserted));
-						}
-					}
-					// account for multi-valued attribute of email
-					try (final PreparedStatement statement = connection
-							.prepareStatement("EXEC add_email @person_ID = ?, @email_address = ?;")) {
-						System.out
-						.println("How many email addresses would you like to add for donor (0 for none)?");
-						final int num_emails = sc.nextInt();
-						sc.nextLine();// consume new line character from nextInt
-
-						// loop based on how many phone numbers that the user wants to insert
-						for (int i = 0; i < num_emails; i++) {
-							System.out.println("Please enter email for donor: ");
-							String email = sc.nextLine(); // variable is not final since it needs to be reassigned
-							// after
-							// every iteration
-
-							// set input parameters for stored procedure
-							statement.setInt(1, donor_ID);
-							statement.setString(2, email);
-							// Actually execute the populated query
-							final int rows_inserted = statement.executeUpdate();
-							System.out.println(
-									String.format("Done. %d rows inserted into Person_email table.",
-											rows_inserted));
-						}
-					}
-					// lastly, account for emergency contacts that each ranger might have (used in
-					// query 8)
-					try (final PreparedStatement statement = connection.prepareStatement(
-							"EXEC add_emergency_contact @person_ID = ?, @contact_name = ?, @relationship = ?, @phone_number = ?;")) {
-						System.out.println(
-								"How many emergency contacts would you like to add for this donor (0 for none)?");
-						final int number_contacts = sc.nextInt(); // use in for loop
-						sc.nextLine();// consume new line character from nextInt
-
-						// loop based on how many emergency contacts that the user wants to insert
-						for (int i = 0; i < number_contacts; i++) {
-							// collect all attributes for Emergency_contact
-							System.out.println("Please enter emergency contact name: ");
-							String contact_name = sc.nextLine(); // variable is not final since it needs to be
-							// reassigned after every iteration
-							System.out.println("Please enter relationship to the donor: ");
-							String relationship = sc.nextLine();
-							System.out.println("Please enter phone number for emergency contact: ");
-							String emergency_phone_number = sc.nextLine();
-
-							// populate query template
-							statement.setInt(1, donor_ID);
-							statement.setString(2, contact_name);
-							statement.setString(3, relationship);
-							statement.setString(4, emergency_phone_number);
-
-							// Actually execute the populated query
-							final int rows_inserted = statement.executeUpdate();
-							System.out.println(String.format("Done. %d rows inserted into Emergency_contact table.",
-									rows_inserted));
-						}
-					}
 				}
 				break;
 			case "5":
@@ -905,7 +904,7 @@ public class Vo_Alan_IP_Task5b {
 
 				System.out.println("Please enter researchers's first name:");
 				// Preceding nextInt, nextFloat, etc. does not consume new line characters from the user input.
-				// We call nextLine to consume that newline character, so that subsequent nextLine doesn't return nothing.
+				// We call nextLine to consume that newline character, so that s	ubsequent nextLine doesn't return nothing.
 				sc.nextLine();
 				final String researcher_first_name = sc.nextLine(); // Read in user input of Person's First Name (white-spaces allowed).
 
@@ -1286,6 +1285,7 @@ public class Vo_Alan_IP_Task5b {
 				break;
 			case "11":
 				// donors are NOT assumed to all be anonymous
+
 				break;
 			case "12":
 				break;
