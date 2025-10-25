@@ -43,6 +43,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "10) Retrieve all park programs for a specific park that started after a given date; \n"
 			+ "12) Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member); \n"
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
+			+ "14) Update the salary of researchers overseeing more than one ranger team by a 3% increase; \n"
 			+ "18) Quit";
 
 	public static void main(String[] args) throws SQLException {
@@ -1394,10 +1395,21 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "14":
+				// update salary of researchers overseeing more than one ranger team using stored procedure
+				System.out.println("Connecting to the database...");
+				// Get the database connection, create statement and execute it right away, as
+				// no user input need be collected
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					System.out.println("Dispatching the query...");
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC increase_researcher_salary")) {
+						//no need to set input parameters for stored procedure, just execute the update statement
+						final int rows_affected = statement.executeUpdate();
+						System.out.println("Done! " + rows_affected + " researcher(s) got a 3% increase in their salary.");
+					}
+				}
 				break;
 			case "15":
 				break;
-
 			case "18": // Do nothing, the while loop will terminate upon the next iteration
 				System.out.println("Exiting! Good-bye!");
 				break;

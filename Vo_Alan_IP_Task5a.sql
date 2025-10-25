@@ -517,3 +517,22 @@ SELECT *
 FROM Person_email
 
 
+--14. Update the salary of researchers overseeing more than one ranger team by a 3% increase
+--create stored procedure that updates salary for all researchers who oversee more than one ranger team 
+--have to keep track of how many times they occur in the reports to (count)
+DROP PROCEDURE IF EXISTS increase_researcher_salary;
+GO
+CREATE PROCEDURE increase_researcher_salary
+AS
+BEGIN 
+UPDATE Researcher
+SET salary = salary * 1.03
+WHERE Researcher.person_ID IN 
+--subquery gets all researchers who oversee more than one ranger team (count > 1)
+--group by person_ID (researcher id) represents #teams that the researcher oversees
+(SELECT person_ID
+FROM Reports_to
+GROUP BY person_ID
+HAVING COUNT(*) > 1)
+END
+GO
