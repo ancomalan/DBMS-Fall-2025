@@ -536,3 +536,40 @@ GROUP BY person_ID
 HAVING COUNT(*) > 1)
 END
 GO
+
+
+--15.Delete visitors who have not enrolled in any park programs and whose park passes have expired
+DROP PROCEDURE IF EXISTS delete_visitors;
+GO
+CREATE PROCEDURE delete_visitors
+AS
+BEGIN 
+DECLARE @current_date DATE; --get current date to check if park passes expired
+SET @current_date = CONVERT(DATE, GETDATE()); --GETDATE() also returns time, which we don't need so we convert to DATE (YYYY-MM-DD)
+
+--UNION set operation gets all visitors who have enrolled in at least one program OR have at least one unexpired park pass (with no duplicates)
+--if visitor is not in set above, that means they have not enrolled in any park programs AND all their park passes have expired. Therefore, delete them.
+--only delete visitor if both conditions are not satisfied
+
+--delete from Holds table first (since it references Visitor)
+DELETE 
+FROM Holds 
+WHERE Holds.person_ID NOT IN (SELECT DISTINCT person_ID FROM Enroll_in
+UNION 
+SELECT DISTINCT person_ID FROM Holds, Park_pass WHERE Holds.pass_ID = Park_pass.pass_ID AND expiration_date > @current_date)
+
+--then, delete from Enroll_in table (since it also references Visitor)
+DELETE 
+FROM Enroll_in 
+WHERE Enroll_in.person_ID NOT IN (SELECT DISTINCT person_ID FROM Enroll_in
+UNION 
+SELECT DISTINCT person_ID FROM Holds, Park_pass WHERE Holds.pass_ID = Park_pass.pass_ID AND expiration_date > @current_date)
+
+--finally, delete from Visitor table 
+DELETE 
+FROM Visitor
+WHERE Visitor.person_ID NOT IN (SELECT DISTINCT person_ID FROM Enroll_in
+UNION 
+SELECT DISTINCT person_ID FROM Holds, Park_pass WHERE Holds.pass_ID = Park_pass.pass_ID AND expiration_date > @current_date)
+END 
+GO
