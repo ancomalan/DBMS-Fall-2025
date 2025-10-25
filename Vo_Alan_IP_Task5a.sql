@@ -463,8 +463,43 @@ UNION
 SELECT person_ID, donation_date, amount FROM Credit_card_donation) AS all_donations)
 
 
---12.  Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member)
+--12. Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member)
+--stored procedure to get list of all rangers in a team, including their id, name, status (active/inactive), years of service, and role (leader/member) 
+DROP PROCEDURE IF EXISTS rangers_in_team;
+GO
+CREATE PROCEDURE rangers_in_team
+--use team_ID to filter through Assigned_to table and get rangers on team with given team_ID
+    @team_ID INT
+AS
+BEGIN 
+--get current date to compute years of service
+DECLARE @current_date DATE; 
+SET @current_date = CONVERT(DATE, GETDATE()); --GETDATE() returns time, which we don't need so we convert to DATE (YYYY-MM-DD)
 
+--CASE statement checks if person_ID for a ranger is in the Leader table (meaning that they are leader), and displays appropriate role for ranger
+SELECT Person.person_ID, Person.first_name, Person.last_name, ranger_status, DATEDIFF(year, ranger_start_date, @current_date) AS years_of_service, 
+CASE
+WHEN Person.person_ID IN (SELECT Leader.person_ID FROM Leader WHERE team_ID = @team_ID) THEN 'leader' 
+ELSE 'member'
+END AS role 
+FROM Assigned_to, Person
+WHERE team_ID = @team_ID AND Person.person_ID = Assigned_to.person_ID;
+END
+GO
+
+--create stored procedure to retrieve certifications for all rangers for team, with given team_ID
+DROP PROCEDURE IF EXISTS get_ranger_certifications;
+GO
+CREATE PROCEDURE get_ranger_certifications
+--use team_ID to filter through Ranger_certification for rangers on that team
+    @team_ID INT
+AS
+BEGIN 
+SELECT Assigned_to.person_ID, certification
+FROM Assigned_to, Ranger_certification 
+WHERE Assigned_to.person_ID = Ranger_certification.person_ID AND team_ID = @team_ID;
+END
+GO
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -41,6 +41,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "8) Retrieve the names and contact information of all emergency contacts for a specific person; \n"
 			+ "9) Retrieve the list of visitors enrolled in a specific park program, including their accessibility needs; \n"
 			+ "10) Retrieve all park programs for a specific park that started after a given date; \n"
+			+ "12) Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member); \n"
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
 			+ "18) Quit";
 
@@ -1288,6 +1289,58 @@ public class Vo_Alan_IP_Task5b {
 
 				break;
 			case "12":
+				//prompt user for team_ID of ranger team that they want to get information from
+				sc.nextLine(); //consume newline character from next()
+				System.out.println("Please enter ranger team_ID: ");
+				final int teamID = sc.nextInt();
+				sc.nextLine();//consume new line character from preceding sc.nextInt
+
+				//execute stored procedures to get list of rangers on ranger team with given team_ID
+				System.out.println("Connecting to the database...");
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					System.out.println("Dispatching the query...");
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC rangers_in_team @team_ID = ?;")) {
+
+						// Setting the storage procedure input parameter values
+						statement.setInt(1, teamID);
+
+						// Call the stored procedure
+						ResultSet resultSet = statement.executeQuery();
+
+						System.out.println("List of rangers for ranger team:");
+						System.out.println("Ranger ID | First Name | Last Name | Status | Years of Service | Role ");
+
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s | %s | %s | %s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2),
+									resultSet.getString(3),
+									resultSet.getString(4),
+									resultSet.getString(5),
+									resultSet.getString(6)
+									));
+						}
+					}
+					//execute stored procedure for getting ranger certifications
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC get_ranger_certifications @team_ID = ?;")) {
+						System.out.println();
+						// Setting the storage procedure input parameter values
+						statement.setInt(1, teamID);
+
+						// Call the stored procedure
+						ResultSet resultSet = statement.executeQuery();
+
+						System.out.println("Ranger Certifications for Ranger team:");
+						System.out.println("Ranger ID | Certification ");
+
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2)
+									));
+						}
+					}
+				}
 				break;
 			case "13":
 				// Retrieve the names, IDs, contact information, and newsletter subscription
