@@ -1,8 +1,4 @@
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,6 +7,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Vo_Alan_IP_Task5b {
 
@@ -26,12 +27,14 @@ public class Vo_Alan_IP_Task5b {
 			HOSTNAME, DBNAME, USERNAME, PASSWORD);
 
 	// Query templates
-	// query 13: Retrieve the names, IDs, contact information, and newsletter
-	// subscription status of all individuals in the database (following three
-	// queries)
+	// query 13: Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database (following three queries)
 	final static String RETRIEVE_PEOPLE = "SELECT person_ID, first_name, last_name, middle_initial, subscribed_to_newsletter FROM Person; ";
 	final static String RETRIEVE_PHONE_NUMBERS = "SELECT * FROM Person_phone; ";
 	final static String RETRIEVE_EMAILS = "SELECT * FROM Person_email; ";
+
+	//query 17: Retrieve names and mailing addresses of all people on the mailing list
+	final static String RETRIEVE_MAILING_LIST = "SELECT first_name, last_name, street, city, us_state, postal_code FROM Person WHERE subscribed_to_newsletter = 'Y';";
+
 
 	// User input prompt
 	final static String PROMPT = "\nPlease select one of the options below: \n"
@@ -50,6 +53,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "14) Update the salary of researchers overseeing more than one ranger team by a 3% increase; \n"
 			+ "15) Delete visitors who have not enrolled in any park programs and whose park passes have expired; \n"
 			+ "16) Import: enter new teams from a data file until the file is empty; \n"
+			+ "17) Export: Retrieve names and mailing addresses of all people on the mailing list and output them to a data file instead of screen; \n"
 			+ "18) Quit";
 
 	public static void main(String[] args) throws SQLException {
@@ -1469,6 +1473,34 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "17": 
+				sc.nextLine();//consume newline character from sc.next()
+				System.out.println("Please enter output file name (including extension): "); 
+				final String outputFileName = sc.nextLine();
+
+				//try to open filewriter object and establish connection with database
+				//try with resources can have multiple resources 
+				try(FileWriter writer = new FileWriter(outputFileName);
+						final Connection connection = DriverManager.getConnection(URL)){
+
+					System.out.println("Dispatching the query...");
+					//execute query 
+					try (final Statement statement = connection.createStatement(); final ResultSet resultSet = statement.executeQuery(RETRIEVE_MAILING_LIST)) {
+						//write to output file
+						writer.write("First Name | Last Name | Street | City | U.S. State | Postal Code \n");
+
+						// Unpack the tuples returned by the database and write them out to the output file
+						while (resultSet.next()) {
+							writer.write(String.format("%s | %s | %s | %s | %s | %s \n", resultSet.getString(1),
+									resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
+									resultSet.getString(5), resultSet.getString(6)));
+						}
+					}
+					System.out.println("File has been written");
+				}
+				catch(IOException e) {
+					System.out.println("Could not write file.");
+				}
+
 				break;
 			case "18": // Do nothing, the while loop will terminate upon the next iteration
 				System.out.println("Exiting! Good-bye!");
