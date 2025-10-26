@@ -1,4 +1,8 @@
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -45,6 +49,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
 			+ "14) Update the salary of researchers overseeing more than one ranger team by a 3% increase; \n"
 			+ "15) Delete visitors who have not enrolled in any park programs and whose park passes have expired; \n"
+			+ "16) Import: enter new teams from a data file until the file is empty; \n"
 			+ "18) Quit";
 
 	public static void main(String[] args) throws SQLException {
@@ -1422,6 +1427,48 @@ public class Vo_Alan_IP_Task5b {
 						System.out.println("Done! Deleted visitors not enrolled in any park programs and whose park passes have expired.");
 					}
 				}
+				break;
+			case "16":
+				sc.nextLine();//consume new line character from sc.next()
+				System.out.println("PLease enter file path containting new teams (each team is represented by new line): ");
+				String filePath = sc.nextLine();
+
+				//C:\Users\bvo10\OneDrive\Desktop\test.txt
+				//need to pass in new FileReader object
+
+				//try to read file 
+				//try with resources can have multiple resources so we can add database connection as well (separate with semicolon)
+				try (BufferedReader reader = new BufferedReader(new FileReader(filePath));
+						final Connection connection = DriverManager.getConnection(URL)){
+					//use reader to read file line by line (each team is a line)
+					String line; 
+					while ((line = reader.readLine()) != null) {
+						//split line into three parts (team_ID, focus_area, formation_date) using split()
+						String[] attribute = line.split(" "); //split by space
+						int rangerTeamID = Integer.parseInt(attribute[0]);//first attribute is team_ID
+						String focusArea = attribute[1];
+						String formationDate = attribute[2];
+
+						//use stored procedure to insert new ranger teams into the database
+						try (final PreparedStatement statement = connection.prepareStatement("EXEC insert_ranger_team @team_ID = ?, @focus_area = ?, @formation_date = ?")) {
+							//set input parameters for stored procedure
+							statement.setInt(1, rangerTeamID);
+							statement.setString(2, focusArea);
+							statement.setString(3, formationDate);
+							//execute stored procedure
+							statement.executeUpdate();
+							System.out.println("Added ranger team with ID:" + rangerTeamID + " to the database!");
+						}
+					}
+				}
+				catch(FileNotFoundException e) {
+					System.out.println("File could not be located.");
+				}
+				catch(IOException e) {
+					System.out.println("Something went wrong.");
+				}
+				break;
+			case "17": 
 				break;
 			case "18": // Do nothing, the while loop will terminate upon the next iteration
 				System.out.println("Exiting! Good-bye!");
