@@ -1,6 +1,6 @@
 --create tables based on task 2
 
---drop tables in reverse order they are created (so foreign key constraintsa are not violated)
+--drop tables in reverse order they are created (so foreign key constraints are not violated)
 DROP TABLE IF EXISTS Operates;
 DROP TABLE IF EXISTS Enroll_in;
 DROP TABLE IF EXISTS Hosts; 
@@ -180,7 +180,7 @@ CREATE TABLE Check_donation(
     campaign_name VARCHAR(64), 
     check_number VARCHAR(20), 
 
-    --primary key consists of person_ID, donation_Date, amount, campaign_name to be safe 
+    --primary key consists of person_ID, donation_date, amount, campaign_name to be safe 
     CONSTRAINT PK_check_donation PRIMARY KEY (person_ID, donation_date, amount, campaign_name),
     --foreign key references person_ID in donor table
     CONSTRAINT FK_check_donation FOREIGN KEY (person_ID) REFERENCES Donor --person has to exist in Donor table in order to make donation
@@ -196,7 +196,7 @@ CREATE TABLE Credit_card_donation(
     last_four_digits CHAR(4) NOT NULL, 
     expiration_date DATE,
 
-    --primary key consists of person_ID, donation_Date, amount, campaign_name to be safe (assuming that donor can only donate once per day)
+    --primary key consists of person_ID, donation_date, amount, campaign_name to be safe 
     CONSTRAINT PK_credit_card_donation PRIMARY KEY (person_ID, donation_date, amount, campaign_name),
     --foreign key references person_ID in Donor table
     CONSTRAINT FK_credit_card_donation FOREIGN KEY (person_ID) REFERENCES Donor

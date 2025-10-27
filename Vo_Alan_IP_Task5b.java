@@ -1,4 +1,9 @@
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,11 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 
 public class Vo_Alan_IP_Task5b {
 
@@ -48,6 +48,7 @@ public class Vo_Alan_IP_Task5b {
 			+ "8) Retrieve the names and contact information of all emergency contacts for a specific person; \n"
 			+ "9) Retrieve the list of visitors enrolled in a specific park program, including their accessibility needs; \n"
 			+ "10) Retrieve all park programs for a specific park that started after a given date; \n"
+			+ "11) Retrieve the total and average donation amount received in a month from all anonymous donors. The result must be sorted by total amount of the donation in descending order; \n"
 			+ "12) Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member); \n"
 			+ "13) Retrieve the names, IDs, contact information, and newsletter subscription status of all individuals in the database; \n"
 			+ "14) Update the salary of researchers overseeing more than one ranger team by a 3% increase; \n"
@@ -1296,8 +1297,40 @@ public class Vo_Alan_IP_Task5b {
 				}
 				break;
 			case "11":
-				// donors are NOT assumed to all be anonymous
+				//prompt user for month and year so that we can get all donations from anonymous donors within that given month and year
+				//for example, month = 3 and year = 2025 is equal to March 2025
+				System.out.println("Please enter month (1-12): ");
+				final int month = sc.nextInt();
+				sc.nextLine();//consume newline character from preceding sc.nextInt()
+				System.out.println("Please enter year (YYYY): ");
+				final int year = sc.nextInt();
+				sc.nextLine();//consume newline character from preceding sc.nextInt()
 
+				//execute stored procedure to get total and avg donations for all anonymous donors that donated in the given month 
+				System.out.println("Connecting to the database...");
+				try (final Connection connection = DriverManager.getConnection(URL)) {
+					System.out.println("Dispatching the query...");
+					try (final PreparedStatement statement = connection.prepareStatement("EXEC query_11 @month = ?, @year =?;")) {
+
+						// Setting the storage procedure input parameter values
+						statement.setInt(1, month);
+						statement.setInt(2, year);
+
+						// Call the stored procedure
+						ResultSet resultSet = statement.executeQuery();
+
+						System.out.println("Total and average donation amount received in a month from all anonymous donors:");
+						System.out.println("Donor ID | Total Donation Amount | Average Donation Amount ");
+
+						while (resultSet.next()) {
+							System.out.println(String.format("%s | %s | %s ",
+									resultSet.getString(1),
+									resultSet.getString(2),
+									resultSet.getString(3)
+									));
+						}
+					}
+				}
 				break;
 			case "12":
 				//prompt user for team_ID of ranger team that they want to get information from

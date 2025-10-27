@@ -1,4 +1,4 @@
---SQL statements that implement all queries 1-14 with error checking
+--SQL statements that implement all queries 1-15 with error checking
 --Query 1: Insert a new visitor into the database and associate them with one or more park programs
 --stored procedure for inserting into Person and Visitor tables
 DROP PROCEDURE IF EXISTS insert_visitor;
@@ -176,8 +176,8 @@ BEGIN
 END
 GO
 --use stored procedures for phone numbers, emails, and emergency contacts from query 1 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --Query 3. Insert a new ranger team into the database and set its leader(1/month).
 --insert new ranger team into Ranger_team table using stored procedure 
 --stored procedure for adding ranger team to the database (inserting into Ranger_team table)
@@ -292,7 +292,7 @@ BEGIN
 END
 GO
 
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --5. Insert a new researcher into the database and associate them with one or more ranger teams (1/year).
 --stored procedure for inserting new researcher into Person and Researcher tables
 DROP PROCEDURE IF EXISTS insert_researcher;
@@ -455,14 +455,34 @@ WHERE park_name = @park_name AND program_start_date > @given_date;
 END
 GO
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --11. Retrieve the total and average donation amount received in a month from all anonymous donors. The result must be sorted by total amount of the donation in descending order
-SELECT SUM(amount) AS total_donations, AVG(amount) AS avg_donations
-FROM 
-(SELECT person_ID, donation_date, amount FROM Check_donation 
-UNION 
-SELECT person_ID, donation_date, amount FROM Credit_card_donation) AS all_donations)
+--For each anonymous donor, find how much they donated (total and average) during a specific month, and list them starting from the one who donated the most.
+DROP PROCEDURE IF EXISTS query_11;
+GO
+CREATE PROCEDURE query_11
+    --given month (1-12) and year (YYYY) as integers from user, filter for donations received in given month
+    @month INT, 
+    @year INT 
+AS
+BEGIN 
+SELECT person_ID, SUM(amount) AS total_donation, AVG(amount) AS average_donation
+FROM
+--get all check donations and credit card donations from anonymous donors in given month and year
+--DATEPART returns an INT so we can use it to compare month and year parts of each tuple's donation_date to see if they equal the input parameters 
+(SELECT Donor.person_ID, donation_date, amount
+FROM Donor, Check_donation 
+WHERE anonymity_preference = 'Y' AND Donor.person_ID = Check_donation.person_ID AND DATEPART(MONTH, donation_date) = @month AND DATEPART(YEAR, donation_date) = @year
+UNION
+SELECT Donor.person_ID, donation_date, amount
+FROM Donor, Credit_card_donation 
+WHERE anonymity_preference = 'Y' AND Donor.person_ID = Credit_card_donation.person_ID AND DATEPART(MONTH, donation_date) = @month AND DATEPART(YEAR, donation_date) = @year) AS anonymous_donations
+GROUP BY person_ID --group by anonymous donors who had any donations in a specific month
+ORDER BY total_donation DESC; --result sorted by total amount of donation in descending order
+END
+GO
 
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --12. Retrieve the list of rangers in a team, including their certifications, years of service and their role in the team (leader or member)
 --stored procedure to get list of all rangers in a team, including their id, name, status (active/inactive), years of service, and role (leader/member) 
 DROP PROCEDURE IF EXISTS rangers_in_team;
@@ -516,7 +536,7 @@ FROM Person_phone
 SELECT * 
 FROM Person_email
 
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --14. Update the salary of researchers overseeing more than one ranger team by a 3% increase
 --create stored procedure that updates salary for all researchers who oversee more than one ranger team 
 --have to keep track of how many times they occur in the reports to (count)
@@ -537,7 +557,7 @@ HAVING COUNT(*) > 1)
 END
 GO
 
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --15.Delete visitors who have not enrolled in any park programs and whose park passes have expired
 DROP PROCEDURE IF EXISTS delete_visitors;
 GO
