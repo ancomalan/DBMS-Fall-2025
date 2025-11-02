@@ -117,6 +117,7 @@ CREATE TABLE Donor(
     anonymity_preference CHAR(1) NOT NULL, --'Y' or 'N'
     CONSTRAINT FK_donor FOREIGN KEY (person_ID) REFERENCES Person --foreign key of Person
 );
+CREATE INDEX donor_idx ON Donor (anonymity_preference, person_ID);
 
 --table for multivalued attribute (certifications) of ranger
 CREATE TABLE Ranger_certification(
@@ -170,7 +171,7 @@ CREATE TABLE Program(
     --foreign key constraints on park_name, which is from National_park
     CONSTRAINT FK_program FOREIGN KEY (park_name) REFERENCES National_park
 );
-
+CREATE INDEX program_idx ON Program (park_name, program_start_date);
 
 --donations must be either check or credit card (total disjoint) as represented by two tables below 
 CREATE TABLE Check_donation(
@@ -285,6 +286,7 @@ CREATE TABLE Enroll_in(
     CONSTRAINT FK_enroll_person FOREIGN KEY (person_ID) REFERENCES Visitor, 
     CONSTRAINT FK_enroll_program FOREIGN KEY (park_name, program_name) REFERENCES Program --composite foreign key since primary key of program is (park_name and program_name)
 );
+CREATE INDEX enroll_in_idx ON Enroll_in (park_name, program_name, person_ID);
 
 --table representing many to many relationship between ranger teams and national parks 
 CREATE TABLE Operates(

@@ -1,4 +1,3 @@
---SQL statements that implement all queries 1-15 with error checking
 --Query 1: Insert a new visitor into the database and associate them with one or more park programs
 --stored procedure for inserting into Person and Visitor tables
 DROP PROCEDURE IF EXISTS insert_visitor;
@@ -435,7 +434,7 @@ AS
 BEGIN 
 SELECT Person.person_ID, first_name, last_name, visit_date, accessibility_needs
 FROM Person, Enroll_in
-WHERE Enroll_in.park_name = @park_name AND Enroll_in.program_name = @program_name AND Person.person_ID = Enroll_in.person_ID
+WHERE Enroll_in.park_name = @park_name AND Enroll_in.program_name = @program_name AND Enroll_in.person_ID = Person.person_ID
 END
 GO
 
@@ -593,5 +592,3 @@ UNION
 SELECT DISTINCT person_ID FROM Holds, Park_pass WHERE Holds.pass_ID = Park_pass.pass_ID AND expiration_date > @current_date)
 END 
 GO
-
-
