@@ -30,7 +30,7 @@ DROP TABLE IF EXISTS Person;
 
 --Person table (person_ID is primary key)
 CREATE TABLE Person(
-    person_ID INT PRIMARY KEY, 
+    person_ID VARCHAR(30) PRIMARY KEY, 
     first_name VARCHAR(64) NOT NULL, 
     last_name VARCHAR(64) NOT NULL, 
     middle_initial CHAR(1), --optional middle initial
@@ -46,7 +46,7 @@ CREATE TABLE Person(
 
 --emergency_contact depends on person 
 CREATE TABLE Emergency_contact(
-    person_ID INT NOT NULL, 
+    person_ID VARCHAR(30) NOT NULL, 
     contact_name VARCHAR(50) NOT NULL, 
     relationship VARCHAR (20) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE Emergency_contact(
 
 --person can have multiple phone numbers (multivalued attribute)
 CREATE TABLE Person_phone(
-    person_ID INT NOT NULL, 
+    person_ID VARCHAR(30) NOT NULL, 
     phone_number VARCHAR(20) NOT NULL,
 
     --primary key consists of both attributes 
@@ -72,7 +72,7 @@ CREATE TABLE Person_phone(
 
 --person can have multiple emails (multivalued attribute)
 CREATE TABLE Person_email(
-    person_ID INT NOT NULL, 
+    person_ID VARCHAR(30) NOT NULL, 
     email_address VARCHAR(50) NOT NULL,
 
     --primary key consists of both attributes 
@@ -92,19 +92,19 @@ CREATE TABLE Park_pass(
 --four tables below account for overlapping specialization of Person
 --table for visitor (inherits from Person)
 CREATE TABLE Visitor(
-    person_ID INT PRIMARY KEY,
+    person_ID VARCHAR(30) PRIMARY KEY,
     CONSTRAINT FK_visitor FOREIGN KEY (person_ID) REFERENCES Person --foreign key of Person
 );
 
 --table for ranger (inherits from Person)
 CREATE TABLE Ranger(
-    person_ID INT PRIMARY KEY,
+    person_ID VARCHAR(30) PRIMARY KEY,
     CONSTRAINT FK_ranger FOREIGN KEY (person_ID) REFERENCES Person --foreign key of Person
 );
 
 --table for researcher (inherits from Person)
 CREATE TABLE Researcher(
-    person_ID INT PRIMARY KEY, 
+    person_ID VARCHAR(30) PRIMARY KEY, 
     research_field VARCHAR(40) NOT NULL, 
     hire_date DATE,
     salary NUMERIC(8,2), --Fixed point number, with user-specified precision of 8 digits, with 2 digits to the right of decimal point
@@ -113,7 +113,7 @@ CREATE TABLE Researcher(
 
 --table for donor (inherits from Person)
 CREATE TABLE Donor(
-    person_ID INT PRIMARY KEY, 
+    person_ID VARCHAR(30) PRIMARY KEY, 
     anonymity_preference CHAR(1) NOT NULL, --'Y' or 'N'
     CONSTRAINT FK_donor FOREIGN KEY (person_ID) REFERENCES Person --foreign key of Person
 );
@@ -121,7 +121,7 @@ CREATE INDEX donor_idx ON Donor (anonymity_preference, person_ID);
 
 --table for multivalued attribute (certifications) of ranger
 CREATE TABLE Ranger_certification(
-    person_ID INT NOT NULL, 
+    person_ID VARCHAR(30) NOT NULL, 
     certification VARCHAR(20) NOT NULL,
 
     --primary key consists of both attributes 
@@ -175,7 +175,7 @@ CREATE INDEX program_idx ON Program (park_name, program_start_date);
 
 --donations must be either check or credit card (total disjoint) as represented by two tables below 
 CREATE TABLE Check_donation(
-    person_ID INT NOT NULL, --depends on donor id since donation is a weak entity set
+    person_ID VARCHAR(30) NOT NULL, --depends on donor id since donation is a weak entity set
     donation_date DATE,
     amount NUMERIC(8,2) NOT NULL, --Fixed point number, with user-specified precision of 8 digits, with 2 digits to the right of decimal point
     campaign_name VARCHAR(64), 
@@ -189,7 +189,7 @@ CREATE TABLE Check_donation(
 
 --Subclass of Donation (card donations)
 CREATE TABLE Credit_card_donation(
-    person_ID INT NOT NULL, --donor id
+    person_ID VARCHAR(30) NOT NULL, --donor id
     donation_date DATE, 
     amount NUMERIC(8,2) NOT NULL, 
     campaign_name VARCHAR(64),
@@ -206,7 +206,7 @@ CREATE TABLE Credit_card_donation(
 --table representing one-to-many relationship between visitors and park passes
 CREATE TABLE Holds(
     pass_ID INT PRIMARY KEY,    --primary key is on the many side of relationship 
-    person_ID INT NOT NULL, 
+    person_ID VARCHAR(30) NOT NULL, 
 
     --foreign key constraints 
     CONSTRAINT FK_holds_pass FOREIGN KEY (pass_ID) references Park_pass,
@@ -215,8 +215,8 @@ CREATE TABLE Holds(
 
 --table representing one to one relationship between rangers mentoring each other
 CREATE TABLE Mentored_by(
-    mentee_ID INT PRIMARY KEY, --primary key for one-to-one can be either mentee_ID or mentor_ID
-    mentor_ID INT NOT NULL,
+    mentee_ID VARCHAR(30) PRIMARY KEY, --primary key for one-to-one can be either mentee_ID or mentor_ID
+    mentor_ID VARCHAR(30) NOT NULL,
     mentorship_start_date DATE, 
 
     --foreign key constraints 
@@ -226,7 +226,7 @@ CREATE TABLE Mentored_by(
 
 --table representing many to one relationship from Ranger to Ranger_team
 CREATE TABLE Assigned_to(
-    person_ID INT PRIMARY KEY, 
+    person_ID VARCHAR(30) PRIMARY KEY, 
     team_ID INT NOT NULL, 
     ranger_start_date DATE, 
     ranger_status VARCHAR(10), --active or inactive
@@ -240,7 +240,7 @@ CREATE TABLE Assigned_to(
 --create a table representing how one of the rangers that is assigned to a ranger team will be leading the team.
 CREATE TABLE Leader(
     team_ID INT PRIMARY KEY, 
-    person_ID INT,
+    person_ID VARCHAR(30),
 
     --person must be assigned to a team first, before they can be leader 
     CONSTRAINT FK_Leader_person FOREIGN KEY (person_ID) REFERENCES Assigned_to,
@@ -251,7 +251,7 @@ CREATE TABLE Leader(
 --table representing many-to-one relationship from ranger_team to researcher
 CREATE TABLE Reports_to(
     team_ID INT PRIMARY KEY, 
-    person_ID INT NOT NULL, 
+    person_ID VARCHAR(30) NOT NULL, 
     report_date DATE, 
     activities_summary VARCHAR(1024), 
 
@@ -274,7 +274,7 @@ CREATE TABLE Hosts(
 
 --table representing many to many relationship between visitors enrolling in programs (weak entity set depending on national park)
 CREATE TABLE Enroll_in(
-    person_ID INT NOT NULL, --visitor must exist in visitor table
+    person_ID VARCHAR(30) NOT NULL, --visitor must exist in visitor table
     park_name VARCHAR(64) NOT NULL, 
     program_name VARCHAR(64) NOT NULL, 
     visit_date DATE, 

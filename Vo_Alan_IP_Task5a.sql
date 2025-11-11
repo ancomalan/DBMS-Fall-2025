@@ -4,7 +4,7 @@ DROP PROCEDURE IF EXISTS insert_visitor;
 GO
 CREATE PROCEDURE insert_visitor
     --input parameters for Person and Visitor tables
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     @first_name VARCHAR(64),
     @last_name VARCHAR(64),
     @middle_initial CHAR(1),
@@ -33,7 +33,7 @@ DROP PROCEDURE IF EXISTS enroll_visitors;
 GO
 CREATE PROCEDURE enroll_visitors
     --input parameters for Enroll_in table
-    @person_ID INT, 
+    @person_ID VARCHAR(30), 
     @park_name VARCHAR(64), 
     @program_name VARCHAR(64), 
     @visit_date DATE, 
@@ -56,7 +56,7 @@ CREATE PROCEDURE visitor_passes
    @pass_type VARCHAR(20), 
    @expiration_date DATE,
    --input parameter for Holds table
-   @person_ID INT
+   @person_ID VARCHAR(30)
 AS
 BEGIN
     --insert into Park_pass table first (add new park pass to database)
@@ -75,7 +75,7 @@ DROP PROCEDURE IF EXISTS add_phone;
 GO
 CREATE PROCEDURE add_phone
     --input parameters entered from the user in java
-    @person_ID INT, 
+    @person_ID VARCHAR(30), 
     @phone_number VARCHAR(20)
 AS
 BEGIN
@@ -91,7 +91,7 @@ DROP PROCEDURE IF EXISTS add_email;
 GO
 CREATE PROCEDURE add_email
     --input parameters entered from the user in java
-    @person_ID INT, 
+    @person_ID VARCHAR(30), 
     @email_address VARCHAR(50)
 AS
 BEGIN
@@ -107,7 +107,7 @@ DROP PROCEDURE IF EXISTS add_emergency_contact;
 GO
 CREATE PROCEDURE add_emergency_contact
     --input parameters entered from the user in java
-    @person_ID INT, 
+    @person_ID VARCHAR(30), 
     @contact_name VARCHAR (50), 
     @relationship VARCHAR (20), 
     @phone_number VARCHAR (20)
@@ -127,7 +127,7 @@ DROP PROCEDURE IF EXISTS query_2;
 GO
 CREATE PROCEDURE query_2
     --input parameters for Person and Ranger tables
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     @first_name VARCHAR(64),
     @last_name VARCHAR(64),
     @middle_initial CHAR(1),
@@ -164,7 +164,7 @@ DROP PROCEDURE IF EXISTS add_ranger_certification;
 GO
 CREATE PROCEDURE add_ranger_certification
     --input parameters entered from the user in java
-    @person_ID INT, 
+    @person_ID VARCHAR(30), 
     @certification VARCHAR(20)
 AS
 BEGIN
@@ -205,7 +205,7 @@ GO
 CREATE PROCEDURE set_leader
     --input parameters needed to insert into the Leader table 
     @team_ID INT,
-    @person_ID INT
+    @person_ID VARCHAR(30)
 AS
 BEGIN
     --insert into Leader table with input parameters
@@ -225,7 +225,7 @@ DROP PROCEDURE IF EXISTS insert_donor;
 GO
 CREATE PROCEDURE insert_donor
     --input parameters for Person tables
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     @first_name VARCHAR(64),
     @last_name VARCHAR(64),
     @middle_initial CHAR(1),
@@ -256,7 +256,7 @@ DROP PROCEDURE IF EXISTS insert_check_donation;
 GO
 CREATE PROCEDURE insert_check_donation
     --input parameters for Person tables
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     @donation_date DATE, 
     @amount NUMERIC(8,2),
     @campaign_name VARCHAR(64), 
@@ -275,7 +275,7 @@ DROP PROCEDURE IF EXISTS insert_credit_card_donation;
 GO
 CREATE PROCEDURE insert_credit_card_donation
     --input parameters for Person tables
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     @donation_date DATE, 
     @amount NUMERIC(8,2),
     @campaign_name VARCHAR(64), 
@@ -298,7 +298,7 @@ DROP PROCEDURE IF EXISTS insert_researcher;
 GO
 CREATE PROCEDURE insert_researcher
     --input parameters for Person tables
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     @first_name VARCHAR(64),
     @last_name VARCHAR(64),
     @middle_initial CHAR(1),
@@ -332,7 +332,7 @@ GO
 CREATE PROCEDURE query_5
     --only insert team_ID and person_ID (reports added later in query 6)
     @team_ID INT, 
-    @person_ID INT
+    @person_ID VARCHAR(30)
 AS
 BEGIN
     --insert into Reports_to table to associate researcher with ranger team (NULL values for report date and summary because we are updating them in query 6)
@@ -351,7 +351,7 @@ GO
 CREATE PROCEDURE add_report
     --need team_ID and person_ID to get correct tuple that associates specific ranger team with one researcher 
     @team_ID INT, 
-    @person_ID INT,
+    @person_ID VARCHAR(30),
     --using the above input parameters, update the report_date and activities_summary columns for the corresponding tuple 
     @report_date DATE, 
     @activities_summary VARCHAR(1024)
@@ -413,7 +413,7 @@ DROP PROCEDURE IF EXISTS retrieve_emergency_contacts;
 GO
 CREATE PROCEDURE retrieve_emergency_contacts
     --input parameter person_ID for person we want to retrieve emergency contacts for
-    @person_ID INT
+    @person_ID VARCHAR(30)
 AS
 BEGIN
 SELECT contact_name, relationship, phone_number
